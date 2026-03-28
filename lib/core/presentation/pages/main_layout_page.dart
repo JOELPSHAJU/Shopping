@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/theme_provider.dart';
 
-class MainLayoutPage extends StatelessWidget {
+class MainLayoutPage extends ConsumerWidget {
   const MainLayoutPage({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
@@ -16,14 +18,21 @@ class MainLayoutPage extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = MediaQuery.of(context).size.width > 800;
+    final themeMode = ref.watch(themeModeProvider);
+    final isDark = themeMode == ThemeMode.dark;
+
+    // Adaptive colors based on theme
+    final bg = isDark ? AppColors.background : const Color(0xFFF8F5F0);
+    final fg = isDark ? AppColors.white : const Color(0xFF1A1A1A);
+    final fgMuted = isDark ? AppColors.textBody : const Color(0xFF888480);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: bg,
       body: Column(
         children: [
-          _buildResponsiveHeader(context, isDesktop),
+          _buildHeader(context, ref, isDesktop, isDark, bg, fg, fgMuted),
           Expanded(child: navigationShell),
         ],
       ),
@@ -33,9 +42,9 @@ class MainLayoutPage extends StatelessWidget {
               currentIndex: navigationShell.currentIndex,
               onTap: (index) => _onTap(context, index),
               type: BottomNavigationBarType.fixed,
-              backgroundColor: AppColors.background,
-              selectedItemColor: AppColors.primary,
-              unselectedItemColor: AppColors.textBody,
+              backgroundColor: bg,
+              selectedItemColor: fg,
+              unselectedItemColor: fgMuted,
               showSelectedLabels: true,
               showUnselectedLabels: true,
               items: const [
@@ -64,11 +73,27 @@ class MainLayoutPage extends StatelessWidget {
     );
   }
 
-  Widget _buildResponsiveHeader(BuildContext context, bool isDesktop) {
+  Widget _buildHeader(
+    BuildContext context,
+    WidgetRef ref,
+    bool isDesktop,
+    bool isDark,
+    Color bg,
+    Color fg,
+    Color fgMuted,
+  ) {
     return Container(
       width: double.infinity,
-      color: AppColors.background,
-      padding: const EdgeInsets.symmetric(vertical: 32),
+      padding: const EdgeInsets.symmetric(vertical: 28),
+      decoration: BoxDecoration(
+        color: bg,
+        border: Border(
+          bottom: BorderSide(
+            color: fgMuted.withValues(alpha: 0.15),
+            width: 0.5,
+          ),
+        ),
+      ),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -77,58 +102,133 @@ class MainLayoutPage extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // Brand wordmark
                 GestureDetector(
                   onTap: () => _onTap(context, 0),
-                  child: Text(
-                    'A U R A',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontSize: 32,
-                      letterSpacing: 12,
-                      fontWeight: FontWeight.w300,
-                      color: AppColors.white,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'F A T H A S H',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 22,
+                          letterSpacing: 8,
+                          fontWeight: FontWeight.w300,
+                          color: fg,
+                        ),
+                      ),
+                      Text(
+                        'BY HIBAASHIR',
+                        style: TextStyle(
+                          fontSize: 7,
+                          letterSpacing: 4,
+                          fontWeight: FontWeight.bold,
+                          color: fgMuted.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 if (isDesktop)
                   Row(
                     children: [
-                      _buildNavText(context, 'COLLECTIONS', 0),
+                      _navText('HOME', 0, fg, fgMuted, context),
                       const SizedBox(width: 48),
-                      _buildNavText(context, 'PRODUCTS', 1),
+                      _navText('PRODUCTS', 1, fg, fgMuted, context),
                       const SizedBox(width: 48),
+                      // Cart icon
                       GestureDetector(
                         onTap: () => _onTap(context, 2),
                         child: Icon(
                           CupertinoIcons.cart,
-                          size: 24,
-                          color: _iconColor(2),
+                          size: 22,
+                          color: navigationShell.currentIndex == 2
+                              ? fg
+                              : fgMuted,
                         ),
                       ),
-                      const SizedBox(width: 32),
+                      const SizedBox(width: 28),
+                      // Favourites icon
                       GestureDetector(
                         onTap: () => _onTap(context, 3),
                         child: Icon(
                           CupertinoIcons.heart,
-                          size: 24,
-                          color: _iconColor(3),
+                          size: 22,
+                          color: navigationShell.currentIndex == 3
+                              ? fg
+                              : fgMuted,
                         ),
                       ),
-                      const SizedBox(width: 32),
+                      const SizedBox(width: 28),
+                      // Profile icon
                       GestureDetector(
                         onTap: () => _onTap(context, 4),
                         child: Icon(
                           CupertinoIcons.person,
-                          size: 24,
-                          color: _iconColor(4),
+                          size: 22,
+                          color: navigationShell.currentIndex == 4
+                              ? fg
+                              : fgMuted,
+                        ),
+                      ),
+                      const SizedBox(width: 28),
+                      // ── THEME TOGGLE ──
+                      GestureDetector(
+                        onTap: () {
+                          ref.read(themeModeProvider.notifier).state = isDark
+                              ? ThemeMode.light
+                              : ThemeMode.dark;
+                        },
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          transitionBuilder: (child, anim) =>
+                              RotationTransition(
+                                turns: anim,
+                                child: FadeTransition(
+                                  opacity: anim,
+                                  child: child,
+                                ),
+                              ),
+                          child: Icon(
+                            isDark
+                                ? CupertinoIcons.sun_max
+                                : CupertinoIcons.moon_stars,
+                            key: ValueKey(isDark),
+                            size: 22,
+                            color: fgMuted,
+                          ),
                         ),
                       ),
                     ],
                   )
                 else
-                  const Icon(
-                    CupertinoIcons.bars,
-                    size: 24,
-                    color: AppColors.primary,
+                  Row(
+                    children: [
+                      // Mobile theme toggle
+                      GestureDetector(
+                        onTap: () {
+                          ref.read(themeModeProvider.notifier).state = isDark
+                              ? ThemeMode.light
+                              : ThemeMode.dark;
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 20),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child: Icon(
+                              isDark
+                                  ? CupertinoIcons.sun_max
+                                  : CupertinoIcons.moon_stars,
+                              key: ValueKey(isDark),
+                              size: 22,
+                              color: fgMuted,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Icon(CupertinoIcons.bars, size: 24, color: fg),
+                    ],
                   ),
               ],
             ),
@@ -138,25 +238,26 @@ class MainLayoutPage extends StatelessWidget {
     );
   }
 
-  Widget _buildNavText(BuildContext context, String text, int index) {
+  Widget _navText(
+    String text,
+    int index,
+    Color fg,
+    Color fgMuted,
+    BuildContext context,
+  ) {
     final isSelected = navigationShell.currentIndex == index;
     return GestureDetector(
       onTap: () => _onTap(context, index),
       child: Text(
         text,
         style: TextStyle(
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.w300,
-          fontSize: 13,
+          fontFamily: 'Poppins',
+          fontWeight: isSelected ? FontWeight.w500 : FontWeight.w300,
+          fontSize: 12,
           letterSpacing: 4,
-          color: isSelected ? AppColors.white : AppColors.textBody,
+          color: isSelected ? fg : fgMuted,
         ),
       ),
     );
-  }
-
-  Color _iconColor(int index) {
-    return navigationShell.currentIndex == index
-        ? AppColors.white
-        : AppColors.textBody;
   }
 }

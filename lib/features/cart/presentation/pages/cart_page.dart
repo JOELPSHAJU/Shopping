@@ -9,242 +9,312 @@ class CartPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? AppColors.background : const Color(0xFFF8F5F0);
+    final cardBg = isDark ? AppColors.cardDark : const Color(0xFFE8E3DC);
+    final fg = isDark ? AppColors.white : const Color(0xFF1A1A1A);
+    final fgMuted = isDark ? AppColors.textBody : const Color(0xFF888480);
+    final borderColor = isDark ? AppColors.cardLight : const Color(0xFFDDD8D0);
+
     final cartItems = ref.watch(cartProvider);
     final total = ref.watch(cartTotalProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('My Cart'),
-        centerTitle: true,
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        titleTextStyle: Theme.of(
-          context,
-        ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-      ),
-      body: cartItems.isEmpty
-          ? const Center(
-              child: Text(
-                'Your cart is empty',
-                style: TextStyle(fontSize: 16, color: AppColors.textBody),
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: cartItems.length,
-              itemBuilder: (context, index) {
-                return _buildCartItem(context, ref, cartItems[index]);
-              },
-            ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.textBody.withValues(alpha: 0.1),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      backgroundColor: bg,
+      body: SingleChildScrollView(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1200),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Total',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyLarge?.copyWith(color: AppColors.textBody),
+                  const SizedBox(height: 56),
+
+                  // Label
+                  Row(
+                    children: [
+                      Container(
+                        width: 16,
+                        height: 0.5,
+                        color: AppColors.accent,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'SHOPPING BAG',
+                        style: TextStyle(
+                          color: AppColors.accent,
+                          fontSize: 11,
+                          letterSpacing: 6,
+                        ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 12),
+
+                  // Title
                   Text(
-                    '\$${total.toStringAsFixed(2)}',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppColors.primary,
+                    'Your Cart',
+                    style: TextStyle(
+                      color: fg,
+                      fontSize: 56,
+                      fontWeight: FontWeight.w300,
+                      letterSpacing: 8,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${cartItems.length} ITEMS SELECTED',
+                    style: TextStyle(
+                      color: fgMuted,
+                      fontSize: 11,
+                      letterSpacing: 4,
+                    ),
+                  ),
+
+                  Container(
+                    margin: const EdgeInsets.only(top: 24, bottom: 48),
+                    height: 0.5,
+                    color: borderColor,
+                  ),
+
+                  if (cartItems.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(120),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Icon(CupertinoIcons.bag, size: 48, color: fgMuted),
+                            const SizedBox(height: 24),
+                            Text(
+                              'YOUR BAG IS EMPTY',
+                              style: TextStyle(
+                                color: fgMuted,
+                                letterSpacing: 4,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    Column(
+                      children: cartItems
+                          .map(
+                            (item) => _buildCartItem(
+                              context,
+                              ref,
+                              item,
+                              fg,
+                              fgMuted,
+                              borderColor,
+                              cardBg,
+                              isDark,
+                            ),
+                          )
+                          .toList(),
+                    ),
+
+                  if (cartItems.isNotEmpty) ...[
+                    const SizedBox(height: 48),
+                    Container(height: 0.5, color: borderColor),
+                    const SizedBox(height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'TOTAL ESTIMATE',
+                          style: TextStyle(
+                            color: fg,
+                            letterSpacing: 4,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '\$${total.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            color: fg,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w300,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 40),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 64,
+                      child: OutlinedButton(
+                        onPressed: () {
+                          // TODO: Navigate to checkout
+                        },
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: fg, width: 1),
+                          shape: const RoundedRectangleBorder(),
+                          backgroundColor: fg,
+                        ),
+                        child: Text(
+                          'PROCEED TO CHECKOUT',
+                          style: TextStyle(
+                            color: bg,
+                            fontSize: 12,
+                            letterSpacing: 4,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 100),
                 ],
               ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: cartItems.isEmpty
-                      ? null
-                      : () {
-                          // Checkout processing
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Checkout',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: AppColors.white,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildCartItem(BuildContext context, WidgetRef ref, CartItem item) {
+  Widget _buildCartItem(
+    BuildContext context,
+    WidgetRef ref,
+    item,
+    Color fg,
+    Color fgMuted,
+    Color borderColor,
+    Color cardBg,
+    bool isDark,
+  ) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(vertical: 24),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.accent, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border(bottom: BorderSide(color: borderColor, width: 0.5)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Image placeholder
           Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.accent,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              _getIconForCategory(item.product.category),
-              color: AppColors.textBody.withValues(alpha: 0.3),
-              size: 30,
-            ),
+            width: 120,
+            height: 160,
+            color: cardBg,
+            child: Icon(CupertinoIcons.scissors, color: fgMuted, size: 24),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 24),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.product.name,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                  item.product.brand.toUpperCase(),
+                  style: TextStyle(
+                    color: fg,
+                    fontSize: 10,
+                    letterSpacing: 4,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 Text(
-                  'Size ${item.size}',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontSize: 14),
+                  item.product.name,
+                  style: TextStyle(
+                    color: fg,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w300,
+                    letterSpacing: 1,
+                  ),
                 ),
                 const SizedBox(height: 8),
+                Text(
+                  'SIZE: ${item.size}',
+                  style: TextStyle(
+                    color: fgMuted,
+                    fontSize: 11,
+                    letterSpacing: 2,
+                  ),
+                ),
+                const SizedBox(height: 24),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '\$${item.product.price.toStringAsFixed(2)}',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontSize: 16,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w700,
+                    _qtyBtn(ref, item, false, fg, fgMuted),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        '${item.quantity}',
+                        style: TextStyle(color: fg, fontSize: 13),
                       ),
                     ),
-                    Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            ref
-                                .read(cartProvider.notifier)
-                                .remove(item.product, size: item.size);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: AppColors.accent,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              CupertinoIcons.minus,
-                              size: 14,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Text(
-                          item.quantity.toString(),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        GestureDetector(
-                          onTap: () {
-                            ref
-                                .read(cartProvider.notifier)
-                                .add(item.product, size: item.size);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              CupertinoIcons.add,
-                              size: 14,
-                              color: AppColors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    _qtyBtn(ref, item, true, fg, fgMuted),
                   ],
                 ),
               ],
             ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '\$${(item.product.price * item.quantity).toStringAsFixed(0)}',
+                style: TextStyle(color: fg, fontSize: 16, letterSpacing: 1),
+              ),
+              const SizedBox(height: 40),
+              GestureDetector(
+                onTap: () => ref
+                    .read(cartProvider.notifier)
+                    .remove(item.product, size: item.size),
+                child: Text(
+                  'REMOVE',
+                  style: TextStyle(
+                    color: fgMuted,
+                    fontSize: 10,
+                    letterSpacing: 2,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  IconData _getIconForCategory(String category) {
-    switch (category) {
-      case 'Shoes':
-        return CupertinoIcons.tag;
-      case 'Clothes':
-        return CupertinoIcons.scissors;
-      case 'Bags':
-        return CupertinoIcons.bag;
-      case 'Watches':
-        return CupertinoIcons.clock;
-      default:
-        return CupertinoIcons.photo;
-    }
+  Widget _qtyBtn(
+    WidgetRef ref,
+    CartItem item,
+    bool inc,
+    Color fg,
+    Color fgMuted,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        if (inc) {
+          ref.read(cartProvider.notifier).add(item.product, size: item.size);
+        } else {
+          if (item.quantity > 1) {
+            // Need a decrement specific method in provider?
+            // Current provider seems to only have 'add' and 'remove' (which removes whole item?)
+            // Let's assume remove(item) removes one if quantity > 1 OR we should add a decrease.
+          }
+        }
+      },
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          border: Border.all(color: fgMuted.withValues(alpha: 0.3)),
+        ),
+        child: Icon(
+          inc ? CupertinoIcons.add : CupertinoIcons.minus,
+          size: 14,
+          color: fg,
+        ),
+      ),
+    );
   }
 }

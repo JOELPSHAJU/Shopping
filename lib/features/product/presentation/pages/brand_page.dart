@@ -4,11 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../home/presentation/providers/home_providers.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
-import '../../../product/domain/product.dart';
+import '../../domain/product.dart';
 import 'package:go_router/go_router.dart';
 
-class FavouritesPage extends ConsumerWidget {
-  const FavouritesPage({super.key});
+class BrandPage extends ConsumerWidget {
+  final String brand;
+  const BrandPage({super.key, required this.brand});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -19,10 +20,7 @@ class FavouritesPage extends ConsumerWidget {
     final fgMuted = isDark ? AppColors.textBody : const Color(0xFF888480);
     final borderColor = isDark ? AppColors.cardLight : const Color(0xFFDDD8D0);
 
-    final favorites = ref.watch(favoritesProvider);
-    final favoriteProducts = mockProducts
-        .where((p) => favorites.contains(p.id))
-        .toList();
+    final brandProducts = mockProducts.where((p) => p.brand == brand).toList();
 
     return Scaffold(
       backgroundColor: bg,
@@ -35,9 +33,33 @@ class FavouritesPage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 56),
+                  const SizedBox(height: 40),
+                  GestureDetector(
+                    onTap: () => context.pop(),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          CupertinoIcons.chevron_left,
+                          size: 14,
+                          color: fgMuted,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'BACK',
+                          style: TextStyle(
+                            color: fgMuted,
+                            fontSize: 10,
+                            letterSpacing: 4,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 40),
 
-                  // Label
+                  // Brand label
                   Row(
                     children: [
                       Container(
@@ -47,7 +69,7 @@ class FavouritesPage extends ConsumerWidget {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'WISHLIST',
+                        'BRAND',
                         style: TextStyle(
                           color: AppColors.accent,
                           fontSize: 11,
@@ -58,9 +80,9 @@ class FavouritesPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  // Title
+                  // Brand name as hero title
                   Text(
-                    'Favourites',
+                    brand,
                     style: TextStyle(
                       color: fg,
                       fontSize: 56,
@@ -70,7 +92,7 @@ class FavouritesPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${favoriteProducts.length} COLLECTED PIECES',
+                    '${brandProducts.length} PIECES',
                     style: TextStyle(
                       color: fgMuted,
                       fontSize: 11,
@@ -84,28 +106,18 @@ class FavouritesPage extends ConsumerWidget {
                     color: borderColor,
                   ),
 
-                  // 3-column grid — 1:1.5 ratio
-                  favoriteProducts.isEmpty
+                  // 3-column grid — 1:1.5 ratio same as product page
+                  brandProducts.isEmpty
                       ? Padding(
-                          padding: const EdgeInsets.all(120),
+                          padding: const EdgeInsets.all(64),
                           child: Center(
-                            child: Column(
-                              children: [
-                                Icon(
-                                  CupertinoIcons.heart,
-                                  size: 48,
-                                  color: fgMuted,
-                                ),
-                                const SizedBox(height: 24),
-                                Text(
-                                  'YOUR WISHLIST IS EMPTY',
-                                  style: TextStyle(
-                                    color: fgMuted,
-                                    letterSpacing: 4,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
+                            child: Text(
+                              'NO PIECES FOUND FOR $brand',
+                              style: TextStyle(
+                                color: fgMuted,
+                                letterSpacing: 4,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                         )
@@ -124,7 +136,7 @@ class FavouritesPage extends ConsumerWidget {
                             return Wrap(
                               spacing: 24,
                               runSpacing: 40,
-                              children: favoriteProducts.map((product) {
+                              children: brandProducts.map((product) {
                                 return SizedBox(
                                   width: itemWidth,
                                   child: _buildCard(
@@ -165,7 +177,6 @@ class FavouritesPage extends ConsumerWidget {
     Color cardBg,
     bool isDark,
   ) {
-    // This is identical to the one on BrandPage - ideally should be a common widget, but we'll stick to consistency for now.
     final favorites = ref.watch(favoritesProvider);
     final isFav = favorites.contains(product.id);
 
@@ -201,7 +212,6 @@ class FavouritesPage extends ConsumerWidget {
                       size: 32,
                     ),
                   ),
-                // Bottom fade
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -220,7 +230,6 @@ class FavouritesPage extends ConsumerWidget {
                     ),
                   ),
                 ),
-                // Brand tag
                 Positioned(
                   top: 16,
                   left: 16,
@@ -233,7 +242,7 @@ class FavouritesPage extends ConsumerWidget {
                         ? AppColors.background.withValues(alpha: 0.75)
                         : Colors.white.withValues(alpha: 0.8),
                     child: Text(
-                      product.brand.toUpperCase(),
+                      product.category.toUpperCase(),
                       style: TextStyle(
                         color: fg,
                         fontSize: 9,
@@ -243,7 +252,6 @@ class FavouritesPage extends ConsumerWidget {
                     ),
                   ),
                 ),
-                // Favourite removal
                 Positioned(
                   top: 12,
                   right: 12,
