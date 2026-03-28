@@ -288,6 +288,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
         fgMuted,
         borderColor,
         product.price,
+        selectedAddress != null,
       ),
     );
   }
@@ -317,95 +318,101 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       backgroundColor: bg,
       isScrollControlled: true,
       shape: const ContinuousRectangleBorder(),
-      builder: (context) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 64),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'PAYMENT REQUIRED',
-              style: TextStyle(
-                color: fg,
-                fontSize: 12,
-                letterSpacing: 4,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Please scan the QR code or use your UPI app to complete the transaction of \$${price.toStringAsFixed(2)}',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: fgMuted, fontSize: 13, height: 1.6),
-            ),
-            const SizedBox(height: 64),
-            // QR Code
-            Container(
-              padding: const EdgeInsets.all(24),
-              color: Colors.white,
-              child: QrImageView(
-                data:
-                    'upi://pay?pa=hibaashir@upi&pn=FATHASH&am=$price&cu=INR&mode=02',
-                version: QrVersions.auto,
-                size: 220.0,
-              ),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'FATHASH BY HIBAASHIR',
-              style: TextStyle(
-                color: fg,
-                fontSize: 10,
-                letterSpacing: 6,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-            const SizedBox(height: 64),
-            SizedBox(
-              width: double.infinity,
-              height: 64,
-              child: ElevatedButton(
-                onPressed: () async {
-                  final upiUrl = Uri.parse(
-                    'upi://pay?pa=hibaashir@upi&pn=FATHASH&am=$price&cu=INR',
-                  );
-                  if (await canLaunchUrl(upiUrl)) {
-                    await launchUrl(upiUrl);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Could not launch UPI app')),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: fg,
-                  elevation: 0,
-                  shape: const ContinuousRectangleBorder(),
-                ),
-                child: Text(
-                  'PAY VIA UPI APP',
+      builder: (context) => SafeArea(
+        child: SingleChildScrollView(
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 64),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'PAYMENT REQUIRED',
                   style: TextStyle(
-                    color: bg,
+                    color: fg,
                     fontSize: 12,
                     letterSpacing: 4,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                'CANCEL',
-                style: TextStyle(
-                  color: fgMuted,
-                  fontSize: 11,
-                  letterSpacing: 2,
+                const SizedBox(height: 16),
+                Text(
+                  'Please scan the QR code or use your UPI app to complete the transaction of \$${price.toStringAsFixed(2)}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: fgMuted, fontSize: 13, height: 1.6),
                 ),
-              ),
+                const SizedBox(height: 64),
+                // QR Code
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  color: Colors.white,
+                  child: QrImageView(
+                    data:
+                        'upi://pay?pa=hibaashir@upi&pn=FATHASH&am=$price&cu=INR&mode=02',
+                    version: QrVersions.auto,
+                    size: 220.0,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Text(
+                  'FATHASH BY HIBAASHIR',
+                  style: TextStyle(
+                    color: fg,
+                    fontSize: 10,
+                    letterSpacing: 6,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                const SizedBox(height: 64),
+                SizedBox(
+                  width: double.infinity,
+                  height: 64,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final upiUrl = Uri.parse(
+                        'upi://pay?pa=hibaashir@upi&pn=FATHASH&am=$price&cu=INR',
+                      );
+                      if (await canLaunchUrl(upiUrl)) {
+                        await launchUrl(upiUrl);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Could not launch UPI app'),
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: fg,
+                      elevation: 0,
+                      shape: const ContinuousRectangleBorder(),
+                    ),
+                    child: Text(
+                      'PAY VIA UPI APP',
+                      style: TextStyle(
+                        color: bg,
+                        fontSize: 12,
+                        letterSpacing: 4,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'CANCEL',
+                    style: TextStyle(
+                      color: fgMuted,
+                      fontSize: 11,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -417,6 +424,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
     Color fgMuted,
     Color borderColor,
     double price,
+    bool isAddressSelected,
   ) {
     return Container(
       decoration: BoxDecoration(
@@ -455,14 +463,34 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
               height: 56,
               width: 200,
               child: ElevatedButton(
-                onPressed: () => _showPaymentModal(
-                  context,
-                  fg,
-                  bg,
-                  fgMuted,
-                  borderColor,
-                  price,
-                ),
+                onPressed: () {
+                  if (isAddressSelected) {
+                    _showPaymentModal(
+                      context,
+                      fg,
+                      bg,
+                      fgMuted,
+                      borderColor,
+                      price,
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'PLEASE SELECT OR ADD A DELIVERY ADDRESS TO CONTINUE',
+                          style: TextStyle(
+                            fontSize: 10,
+                            letterSpacing: 2,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        backgroundColor: AppColors.accent,
+                        behavior: SnackBarBehavior.floating,
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: fg,
                   elevation: 0,

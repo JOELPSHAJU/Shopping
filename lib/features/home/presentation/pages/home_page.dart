@@ -144,9 +144,8 @@ class HomePage extends ConsumerWidget {
                   _sectionLabel(context, 'CURATED FOR YOU'),
                   const SizedBox(height: 16),
                   Text(
-                    favoriteProducts.isEmpty
-                        ? 'Most Wanted'
-                        : 'Your Favourites',
+                    'Most Wanted',
+
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
                       fontSize: isDesktop ? 56 : 36,
                       fontWeight: FontWeight.w300,
@@ -154,25 +153,7 @@ class HomePage extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 48),
-                  favoriteProducts.isEmpty
-                      ? _buildDefaultFavourites(context, ref, isDesktop)
-                      : SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: favoriteProducts.map((p) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 32),
-                                child: _buildProductCard(
-                                  context,
-                                  ref,
-                                  p,
-                                  height: 440,
-                                  width: 300,
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
+                  _buildDefaultFavourites(context, ref, isDesktop),
                 ],
               ),
             ),

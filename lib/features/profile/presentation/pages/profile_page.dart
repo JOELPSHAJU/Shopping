@@ -52,7 +52,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: bg,
-      endDrawer: _buildProfileSidebar(context, fg, bg, fgMuted, borderColor, user),
+      endDrawer: _buildProfileSidebar(
+        context,
+        fg,
+        bg,
+        fgMuted,
+        borderColor,
+        user,
+      ),
       onEndDrawerChanged: (isOpen) {
         if (!isOpen) {
           setState(() => _isEditing = false);
@@ -117,7 +124,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         ),
                         child: Center(
                           child: Text(
-                            user.name.split(' ').map((n) => n[0]).join().toUpperCase(),
+                            user.name
+                                .split(' ')
+                                .map((n) => n[0])
+                                .join()
+                                .toUpperCase(),
                             style: TextStyle(
                               color: fg,
                               fontSize: 24,
@@ -318,9 +329,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       }
                     },
                     icon: Icon(
-                      _isEditing ? CupertinoIcons.arrow_left : CupertinoIcons.xmark,
-                      size: 20, 
-                      color: fgMuted
+                      _isEditing
+                          ? CupertinoIcons.arrow_left
+                          : CupertinoIcons.xmark,
+                      size: 20,
+                      color: fgMuted,
                     ),
                   ),
                 ],
@@ -329,7 +342,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
-                children: _getSectionContent(fg, bg, fgMuted, borderColor, user),
+                children: _getSectionContent(
+                  fg,
+                  bg,
+                  fgMuted,
+                  borderColor,
+                  user,
+                ),
               ),
             ),
           ],
@@ -338,7 +357,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
-  List<Widget> _getSectionContent(Color fg, Color bg, Color fgMuted, Color borderColor, UserProfile user) {
+  List<Widget> _getSectionContent(
+    Color fg,
+    Color bg,
+    Color fgMuted,
+    Color borderColor,
+    UserProfile user,
+  ) {
     switch (_activeSection) {
       case 'PERSONAL DATA':
         if (_isEditing) {
@@ -348,15 +373,24 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             _sidebarField('Mobile', _mobileController, fg, fgMuted),
             _sidebarField('Date of Birth', _dobController, fg, fgMuted),
             const SizedBox(height: 48),
-            _actionButton('SAVE CHANGES', fg, bg, onTap: () {
-              ref.read(userProvider.notifier).updateProfile(UserProfile(
-                name: _nameController.text,
-                email: _emailController.text,
-                mobile: _mobileController.text,
-                dob: _dobController.text,
-              ));
-              setState(() => _isEditing = false);
-            }),
+            _actionButton(
+              'SAVE CHANGES',
+              fg,
+              bg,
+              onTap: () {
+                ref
+                    .read(userProvider.notifier)
+                    .updateProfile(
+                      UserProfile(
+                        name: _nameController.text,
+                        email: _emailController.text,
+                        mobile: _mobileController.text,
+                        dob: _dobController.text,
+                      ),
+                    );
+                setState(() => _isEditing = false);
+              },
+            ),
           ];
         } else {
           return [
@@ -365,29 +399,132 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             _sidebarDisplayItem('Mobile', user.mobile, fg, fgMuted),
             _sidebarDisplayItem('Date of Birth', user.dob, fg, fgMuted),
             const SizedBox(height: 48),
-            _actionButton('EDIT PROFILE', fg, bg, onTap: () {
-              setState(() {
-                _nameController.text = user.name;
-                _emailController.text = user.email;
-                _mobileController.text = user.mobile;
-                _dobController.text = user.dob;
-                _isEditing = true;
-              });
-            }),
+            _actionButton(
+              'EDIT PROFILE',
+              fg,
+              bg,
+              onTap: () {
+                setState(() {
+                  _nameController.text = user.name;
+                  _emailController.text = user.email;
+                  _mobileController.text = user.mobile;
+                  _dobController.text = user.dob;
+                  _isEditing = true;
+                });
+              },
+            ),
           ];
         }
       case 'MY ORDERS':
         return [
-          _orderItem('ID #82928', 'SS26 SILK SHIRT', 'Delivered', fg, fgMuted, borderColor),
-          _orderItem('ID #82921', 'ARTISANAL TEE', 'Shipped', fg, fgMuted, borderColor),
-          _orderItem('ID #81200', 'MODERN SLACKS', 'Cancelled', fg, fgMuted, borderColor),
+          _orderItem(
+            'ID #82928',
+            'SS26 SILK SHIRT',
+            'Delivered',
+            fg,
+            fgMuted,
+            borderColor,
+          ),
+          _orderItem(
+            'ID #82921',
+            'ARTISANAL TEE',
+            'Shipped',
+            fg,
+            fgMuted,
+            borderColor,
+          ),
+          _orderItem(
+            'ID #81200',
+            'MODERN SLACKS',
+            'Cancelled',
+            fg,
+            fgMuted,
+            borderColor,
+          ),
         ];
       case 'SHIPPING':
         return [
-          _addressItem('HOME', 'Kinfra Park Main Gate, Accel Infinium 1, Thiruvananthapuram, Kerala 695585', fg, fgMuted, borderColor),
-          _addressItem('WORK', 'KINFRA IT & ITES SEZ, KINFRA Film and IT Park, Kerala 695585', fg, fgMuted, borderColor),
+          _addressItem(
+            'HOME',
+            'Kinfra Park Main Gate, Accel Infinium 1, Thiruvananthapuram, Kerala 695585',
+            fg,
+            fgMuted,
+            borderColor,
+          ),
+          _addressItem(
+            'WORK',
+            'KINFRA IT & ITES SEZ, KINFRA Film and IT Park, Kerala 695585',
+            fg,
+            fgMuted,
+            borderColor,
+          ),
           const SizedBox(height: 32),
-          _actionButton('+ ADD NEW ADDRESS', fg, Colors.transparent, outline: true, onTap: () {}),
+          _actionButton(
+            '+ ADD NEW ADDRESS',
+            fg,
+            Colors.transparent,
+            outline: true,
+            onTap: () {},
+          ),
+        ];
+      case 'HELP CENTER':
+        return [
+          _sidebarDisplayItem('Email Support', 'info@fathash.com', fg, fgMuted),
+          _sidebarDisplayItem('WhatsApp', '+91 80782 56341', fg, fgMuted),
+          _sidebarDisplayItem(
+            'Instagram',
+            '@fathash_by_hibaashir',
+            fg,
+            fgMuted,
+          ),
+          _sidebarDisplayItem(
+            'Store Hours',
+            'Mon - Sat: 10:00 - 19:00',
+            fg,
+            fgMuted,
+          ),
+          const SizedBox(height: 48),
+          Text(
+            'FOR RETURNS OR CLAIMS',
+            style: TextStyle(
+              color: AppColors.accent,
+              fontSize: 10,
+              letterSpacing: 2,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '• No refund or exchange\n• Unboxing video required for claims',
+            style: TextStyle(
+              color: fg,
+              fontSize: 12,
+              height: 1.8,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 48),
+          _actionButton('MESSAGE US', fg, bg, onTap: () {}),
+        ];
+      case 'PAYMENT':
+        return [
+          _sidebarDisplayItem(
+            'Current Method',
+            'UPI Payment (Active)',
+            fg,
+            fgMuted,
+          ),
+          _sidebarDisplayItem('UPI ID', 'hibaashir@upi', fg, fgMuted),
+          const SizedBox(height: 48),
+          _actionButton('CHANGE METHOD', fg, bg, onTap: () {}),
+        ];
+      case 'SETTINGS':
+        return [
+          _sidebarDisplayItem('Language', 'English (UK)', fg, fgMuted),
+          _sidebarDisplayItem('Currency', 'INR (₹)', fg, fgMuted),
+          _sidebarDisplayItem('Notifications', 'On', fg, fgMuted),
+          const SizedBox(height: 48),
+          _actionButton('APP PREFERENCES', fg, bg, onTap: () {}),
         ];
       default:
         return [
@@ -395,7 +532,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             padding: const EdgeInsets.only(top: 100),
             child: Center(
               child: Text(
-                'Coming Soon',
+                'Information not available',
                 style: TextStyle(
                   color: fgMuted,
                   fontSize: 12,
@@ -408,7 +545,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
   }
 
-  Widget _sidebarDisplayItem(String label, String value, Color fg, Color fgMuted) {
+  Widget _sidebarDisplayItem(
+    String label,
+    String value,
+    Color fg,
+    Color fgMuted,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 32),
       child: Column(
@@ -437,7 +579,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
-  Widget _sidebarField(String label, TextEditingController controller, Color fg, Color fgMuted) {
+  Widget _sidebarField(
+    String label,
+    TextEditingController controller,
+    Color fg,
+    Color fgMuted,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 32),
       child: Column(
@@ -455,13 +602,21 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           const SizedBox(height: 8),
           TextField(
             controller: controller,
-            style: TextStyle(color: fg, fontSize: 16, fontWeight: FontWeight.w300),
+            style: TextStyle(
+              color: fg,
+              fontSize: 16,
+              fontWeight: FontWeight.w300,
+            ),
             cursorColor: fg,
             decoration: InputDecoration(
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(vertical: 8),
-              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: fg.withValues(alpha: 0.1))),
-              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: fg)),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: fg.withValues(alpha: 0.1)),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: fg),
+              ),
             ),
           ),
         ],
@@ -469,7 +624,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
-  Widget _orderItem(String id, String item, String status, Color fg, Color fgMuted, Color border) {
+  Widget _orderItem(
+    String id,
+    String item,
+    String status,
+    Color fg,
+    Color fgMuted,
+    Color border,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       padding: const EdgeInsets.all(24),
@@ -480,52 +642,111 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(id, style: TextStyle(color: fgMuted, fontSize: 10, letterSpacing: 2)),
-              Text(status.toUpperCase(), style: TextStyle(color: AppColors.accent, fontSize: 10, fontWeight: FontWeight.bold)),
+              Text(
+                id,
+                style: TextStyle(
+                  color: fgMuted,
+                  fontSize: 10,
+                  letterSpacing: 2,
+                ),
+              ),
+              Text(
+                status.toUpperCase(),
+                style: TextStyle(
+                  color: AppColors.accent,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(item, style: TextStyle(color: fg, fontSize: 14, letterSpacing: 2)),
+          Text(
+            item,
+            style: TextStyle(color: fg, fontSize: 14, letterSpacing: 2),
+          ),
         ],
       ),
     );
   }
 
-  Widget _addressItem(String type, String address, Color fg, Color fgMuted, Color border) {
+  Widget _addressItem(
+    String type,
+    String address,
+    Color fg,
+    Color fgMuted,
+    Color border,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(border: Border.all(color: border, width: 0.5)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(type, style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 4)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            type,
+            style: TextStyle(
+              color: fg,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 4,
+            ),
+          ),
           const SizedBox(height: 12),
-          Text(address, style: TextStyle(color: fgMuted, fontSize: 13, height: 1.5)),
-        ]),
+          Text(
+            address,
+            style: TextStyle(color: fgMuted, fontSize: 13, height: 1.5),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _actionButton(String label, Color fg, Color bg, {bool outline = false, required VoidCallback onTap}) {
+  Widget _actionButton(
+    String label,
+    Color fg,
+    Color bg, {
+    bool outline = false,
+    required VoidCallback onTap,
+  }) {
     return SizedBox(
       height: 56,
       width: double.infinity,
-      child: outline 
-        ? OutlinedButton(
-            onPressed: onTap,
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: fg, width: 0.5),
-              shape: const RoundedRectangleBorder(),
+      child: outline
+          ? OutlinedButton(
+              onPressed: onTap,
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: fg, width: 0.5),
+                shape: const RoundedRectangleBorder(),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: fg,
+                  fontSize: 11,
+                  letterSpacing: 4,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+          : ElevatedButton(
+              onPressed: onTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: fg,
+                elevation: 0,
+                shape: const RoundedRectangleBorder(),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: bg,
+                  fontSize: 11,
+                  letterSpacing: 4,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-            child: Text(label, style: TextStyle(color: fg, fontSize: 11, letterSpacing: 4, fontWeight: FontWeight.bold)),
-          )
-        : ElevatedButton(
-            onPressed: onTap,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: fg,
-              elevation: 0,
-              shape: const RoundedRectangleBorder(),
-            ),
-            child: Text(label, style: TextStyle(color: bg, fontSize: 11, letterSpacing: 4, fontWeight: FontWeight.bold)),
-          ),
     );
   }
 }
