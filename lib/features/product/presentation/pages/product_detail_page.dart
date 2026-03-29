@@ -164,7 +164,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                         children: [
                           // Brand & Type breadcrumb
                           Text(
-                            'HOME / ${product.category.toUpperCase()} / ${product.brand.toUpperCase()}',
+                            'PRODUCTS / ${product.category.toUpperCase()} / ${product.brand.toUpperCase()}',
                             style: TextStyle(
                               color: fgMuted,
                               fontSize: 10,
@@ -302,7 +302,6 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                           ),
 
                           const SizedBox(height: 48),
-
                           // Size selector
                           Text(
                             'SELECT SIZE',

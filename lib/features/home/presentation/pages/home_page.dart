@@ -28,6 +28,8 @@ class HomePage extends ConsumerWidget {
     final fgMuted = isDark ? AppColors.textBody : AppColors.lightTextBody;
     final borderColor = isDark ? AppColors.cardLight : AppColors.lightBorder;
 
+    final banner = ref.watch(homeBannerProvider);
+
     return Scaffold(
       backgroundColor: bg,
       body: SingleChildScrollView(
@@ -35,7 +37,7 @@ class HomePage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Hero Banner ──────────────────────────────────────────────
-            _buildHero(context, isDesktop, bg, fg, fgMuted),
+            _buildHero(context, isDesktop, bg, fg, fgMuted, banner),
 
             // ── Marquee Brand Strip ──────────────────────────────────────
             _buildBrandStrip(context, bg, fg),
@@ -174,6 +176,7 @@ class HomePage extends ConsumerWidget {
     Color bg,
     Color fg,
     Color fgMuted,
+    dynamic banner,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -184,7 +187,7 @@ class HomePage extends ConsumerWidget {
         fit: StackFit.expand,
         children: [
           Image.asset(
-            'assets/images/dress_hero.webp',
+            banner.imageAsset,
             fit: BoxFit.cover,
             color: isDark
                 ? Colors.black.withValues(alpha: 0.35)
@@ -228,7 +231,7 @@ class HomePage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'MODEST\nCOLLECTIONS',
+                      banner.title,
                       style: Theme.of(context).textTheme.displayLarge?.copyWith(
                         fontSize: isDesktop ? 88 : 56,
                         height: 1.0,
@@ -236,12 +239,10 @@ class HomePage extends ConsumerWidget {
                         fontWeight: FontWeight.w300,
                       ),
                     ),
-                    const SizedBox(height: 32),
                     SizedBox(
                       width: 440,
                       child: Text(
-                        'Ladies modest wear for the modern woman — cotton sets, '
-                        'elegant gowns, and artisanal co-ord sets.',
+                        banner.description,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           height: 1.8,
                           color: fgMuted,
@@ -252,7 +253,9 @@ class HomePage extends ConsumerWidget {
                     Row(
                       children: [
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () => context.push(
+                            '/collection/${banner.collectionId}',
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: fg,
                             padding: const EdgeInsets.symmetric(
@@ -791,7 +794,7 @@ class HomePage extends ConsumerWidget {
                     child: SizedBox(
                       height: 640,
                       child: Image.asset(
-                        'assets/images/dress_cobalt_02.webp',
+                        'assets/images/adv.jpg',
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -826,7 +829,7 @@ class HomePage extends ConsumerWidget {
                           ),
                           const SizedBox(height: 56),
                           ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () => context.push('/archive'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: fg,
                               padding: const EdgeInsets.symmetric(
@@ -889,7 +892,7 @@ class HomePage extends ConsumerWidget {
                       ),
                       const SizedBox(height: 40),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () => context.push('/archive'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: fg,
                           padding: const EdgeInsets.symmetric(

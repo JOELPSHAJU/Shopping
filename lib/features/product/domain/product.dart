@@ -6,6 +6,8 @@ class Product {
   final String category;
   final String brand;
   final String? imageAsset;
+  final bool isArchived;
+  final String? collectionId;
 
   const Product({
     required this.id,
@@ -15,5 +17,7 @@ class Product {
     required this.category,
     required this.brand,
     this.imageAsset,
+    this.isArchived = false,
+    this.collectionId,
   });
 }

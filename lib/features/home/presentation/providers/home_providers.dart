@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../product/domain/product.dart';
+import '../../domain/home_banner.dart';
 
 // FATHASH Product Catalog — Ladies Modest Wear
 final List<Product> mockProducts = [
@@ -11,6 +12,7 @@ final List<Product> mockProducts = [
     'READY-TO-WEAR',
     'COTTON SET',
     'dress_navy_01.webp',
+    collectionId: 'modest-26',
   ),
   _m(
     '1a',
@@ -19,6 +21,7 @@ final List<Product> mockProducts = [
     'READY-TO-WEAR',
     'COTTON SET',
     'dress_shift_01.webp',
+    collectionId: 'modest-26',
   ),
   _m(
     '1b',
@@ -475,6 +478,35 @@ final List<Product> mockProducts = [
     'SHORT TOPS',
     'dress_shift_01.webp',
   ),
+
+  // ── ARCHIVED PRODUCTS ──────────────────────────────────────────────────────
+  _m(
+    'arch1',
+    'Vintage Cobalt Gown',
+    1200,
+    'GOWNS',
+    'ARCHIVE',
+    'dress_cobalt_01.webp',
+    isArchived: true,
+  ),
+  _m(
+    'arch2',
+    'Legacy Shift Dress',
+    950,
+    'READY-TO-WEAR',
+    'ARCHIVE',
+    'dress_shift_01.webp',
+    isArchived: true,
+  ),
+  _m(
+    'arch3',
+    'Archive Floral Maxi',
+    1500,
+    'GOWNS',
+    'ARCHIVE',
+    'dress_maxi_01.jpg',
+    isArchived: true,
+  ),
 ];
 
 // Helper to shorten the product creation
@@ -484,8 +516,10 @@ Product _m(
   double price,
   String cat,
   String brand,
-  String asset,
-) {
+  String asset, {
+  bool isArchived = false,
+  String? collectionId,
+}) {
   return Product(
     id: id,
     name: name,
@@ -494,17 +528,49 @@ Product _m(
     category: cat,
     brand: brand,
     imageAsset: 'assets/images/$asset',
+    isArchived: isArchived,
+    collectionId: collectionId,
   );
 }
+
+// ── BANNER PROVIDER ─────────────────────────────────────────────────────────
+
+final homeBannerProvider = Provider<HomeBanner>((ref) {
+  return const HomeBanner(
+    id: 'hero-1',
+    title: 'MODEST\nCOLLECTIONS',
+    description:
+        'Ladies modest wear for the modern woman — cotton sets, '
+        'elegant gowns, and artisanal co-ord sets.',
+    imageAsset: 'assets/images/banner.jpg',
+    collectionId: 'modest-26',
+  );
+});
+
+// ── COLLECTION PRODUCTS ─────────────────────────────────────────────────────
+
+final collectionProductsProvider = Provider.family<List<Product>, String>((
+  ref,
+  collectionId,
+) {
+  return mockProducts.where((p) => p.collectionId == collectionId).toList();
+});
 
 // Selected Category State
 final selectedCategoryProvider = StateProvider<String>((ref) => 'All');
 
-// Filtered Products
+// Filtered Products (Exclude archived)
 final filteredProductsProvider = Provider<List<Product>>((ref) {
   final category = ref.watch(selectedCategoryProvider);
-  if (category == 'All') return mockProducts;
-  return mockProducts.where((p) => p.category == category).toList();
+  final activeProducts = mockProducts.where((p) => !p.isArchived).toList();
+
+  if (category == 'All') return activeProducts;
+  return activeProducts.where((p) => p.category == category).toList();
+});
+
+// Archived Products Provider
+final archivedProductsProvider = Provider<List<Product>>((ref) {
+  return mockProducts.where((p) => p.isArchived).toList();
 });
 
 // Favorites State

@@ -57,28 +57,28 @@ class BrandPage extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 20),
 
-                  // Brand label
-                  Row(
-                    children: [
-                      Container(
-                        width: 16,
-                        height: 0.5,
-                        color: AppColors.accent,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'BRAND',
-                        style: TextStyle(
-                          color: AppColors.accent,
-                          fontSize: 11,
-                          letterSpacing: 6,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
+                  // // Brand label
+                  // Row(
+                  //   children: [
+                  //     Container(
+                  //       width: 16,
+                  //       height: 0.5,
+                  //       color: AppColors.accent,
+                  //     ),
+                  //     const SizedBox(width: 12),
+                  //     Text(
+                  //       'BRAND',
+                  //       style: TextStyle(
+                  //         color: AppColors.accent,
+                  //         fontSize: 11,
+                  //         letterSpacing: 6,
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+                  // const SizedBox(height: 12),
 
                   // Brand name as hero title
                   Text(
