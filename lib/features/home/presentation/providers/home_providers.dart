@@ -594,3 +594,39 @@ class FavoritesNotifier extends StateNotifier<Set<String>> {
     }
   }
 }
+
+// ── NEWSLETTER PROVIDERS ───────────────────────────────────────────────────
+
+enum NewsletterStatus { idle, loading, success, error }
+
+final newsletterStatusProvider = StateProvider<NewsletterStatus>(
+  (ref) => NewsletterStatus.idle,
+);
+
+final newsletterEmailProvider = StateProvider<String>((ref) => '');
+
+final newsletterProvider = Provider((ref) {
+  return NewsletterService(ref);
+});
+
+class NewsletterService {
+  final Ref ref;
+  NewsletterService(this.ref);
+
+  Future<void> join(String email) async {
+    if (email.isEmpty || !email.contains('@')) {
+      ref.read(newsletterStatusProvider.notifier).state =
+          NewsletterStatus.error;
+      return;
+    }
+
+    ref.read(newsletterStatusProvider.notifier).state =
+        NewsletterStatus.loading;
+
+    await Future.delayed(const Duration(seconds: 2));
+
+    ref.read(newsletterStatusProvider.notifier).state =
+        NewsletterStatus.success;
+    ref.read(newsletterEmailProvider.notifier).state = '';
+  }
+}

@@ -7,11 +7,24 @@ import '../providers/home_providers.dart';
 import '../../../product/domain/product.dart';
 import 'package:go_router/go_router.dart';
 
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  final _emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 800;
 
@@ -123,7 +136,6 @@ class HomePage extends ConsumerWidget {
                                 padding: const EdgeInsets.only(right: 40),
                                 child: _buildProductCard(
                                   context,
-                                  ref,
                                   p,
                                   height: 560,
                                   width: 380,
@@ -157,12 +169,14 @@ class HomePage extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 48),
-                  _buildDefaultFavourites(context, ref, isDesktop),
+                  _buildDefaultFavourites(context, isDesktop),
                 ],
               ),
             ),
 
-            _buildJoin(context, isDesktop, bg, fg, fgMuted, borderColor),
+            if (ref.watch(newsletterStatusProvider) != NewsletterStatus.success)
+              _buildJoin(context, isDesktop, bg, fg, fgMuted, borderColor),
+
             _buildFooter(context, isDesktop, bg, fg, fgMuted),
           ],
         ),
@@ -350,7 +364,6 @@ class HomePage extends ConsumerWidget {
 
   Widget _buildProductCard(
     BuildContext context,
-    WidgetRef ref,
     Product product, {
     required double height,
     required double width,
@@ -438,7 +451,6 @@ class HomePage extends ConsumerWidget {
 
   Widget _buildDefaultFavourites(
     BuildContext context,
-    WidgetRef ref,
     bool isDesktop,
   ) {
     final products = mockProducts.take(3).toList();
@@ -448,7 +460,7 @@ class HomePage extends ConsumerWidget {
         children: products.map((p) {
           return Padding(
             padding: const EdgeInsets.only(right: 32),
-            child: _buildProductCard(context, ref, p, height: 440, width: 300),
+            child: _buildProductCard(context, p, height: 440, width: 300),
           );
         }).toList(),
       ),
@@ -463,7 +475,10 @@ class HomePage extends ConsumerWidget {
     Color fgMuted,
     Color borderColor,
   ) {
+    final status = ref.watch(newsletterStatusProvider);
+
     return _buildConstrainedSection(
+      key: const ValueKey('newsletter_section'),
       paddingVertical: 120,
       backgroundColor: isDesktop
           ? (Theme.of(context).brightness == Brightness.dark
@@ -485,7 +500,9 @@ class HomePage extends ConsumerWidget {
           SizedBox(
             width: 600,
             child: TextField(
+              controller: _emailController,
               style: TextStyle(color: fg),
+              enabled: status != NewsletterStatus.loading,
               decoration: InputDecoration(
                 hintText: 'YOUR EMAIL ADDRESS',
                 hintStyle: TextStyle(
@@ -493,19 +510,75 @@ class HomePage extends ConsumerWidget {
                   fontSize: 11,
                   letterSpacing: 4,
                 ),
+                errorText: status == NewsletterStatus.error ? 'PLEASE ENTER A VALID EMAIL' : null,
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: borderColor),
                 ),
                 focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: fg),
                 ),
-                suffixIcon: TextButton(
-                  onPressed: () {},
-                  child: Text(
-                    'JOIN',
-                    style: TextStyle(color: fg, fontSize: 11, letterSpacing: 2),
-                  ),
-                ),
+                suffixIcon: status == NewsletterStatus.loading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: Padding(
+                          padding: EdgeInsets.all(12),
+                          child: CircularProgressIndicator(strokeWidth: 1),
+                        ),
+                      )
+                    : TextButton(
+                        onPressed: () async {
+                          final email = _emailController.text;
+                          // Unfocus BEFORE starting the action to avoid DWDS errors
+                          FocusManager.instance.primaryFocus?.unfocus();
+                          
+                          await ref.read(newsletterProvider).join(email);
+
+                          if (mounted && ref.read(newsletterStatusProvider) == NewsletterStatus.success) {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                backgroundColor: bg,
+                                shape: const ContinuousRectangleBorder(),
+                                title: Text(
+                                  'WELCOME TO FATHASH',
+                                  style: TextStyle(
+                                    color: fg,
+                                    fontSize: 14,
+                                    letterSpacing: 4,
+                                    fontWeight: FontWeight.w300,
+                                  ),
+                                ),
+                                content: Text(
+                                  'A confirmation email has been sent to $email.\n\nEnjoy exclusive access to our newest collections and archival showpieces.',
+                                  style: TextStyle(
+                                    color: fgMuted,
+                                    fontSize: 13,
+                                    height: 1.6,
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text(
+                                      'START SHOPPING',
+                                      style: TextStyle(
+                                        color: fg,
+                                        fontSize: 11,
+                                        letterSpacing: 2,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                        },
+                        child: Text(
+                          'JOIN',
+                          style: TextStyle(color: fg, fontSize: 11, letterSpacing: 2),
+                        ),
+                      ),
               ),
             ),
           ),
@@ -707,11 +780,13 @@ class HomePage extends ConsumerWidget {
   }
 
   Widget _buildConstrainedSection({
+    Key? key,
     required Widget child,
     required double paddingVertical,
     Color? backgroundColor,
   }) {
     return Container(
+      key: key,
       width: double.infinity,
       color: backgroundColor ?? Colors.transparent,
       padding: EdgeInsets.symmetric(vertical: paddingVertical),
@@ -794,7 +869,7 @@ class HomePage extends ConsumerWidget {
                     child: SizedBox(
                       height: 640,
                       child: Image.asset(
-                        'assets/images/adv.jpg',
+                        'assets/images/adv1.jpg',
                         fit: BoxFit.cover,
                       ),
                     ),
