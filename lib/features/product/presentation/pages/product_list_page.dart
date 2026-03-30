@@ -531,29 +531,39 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
               '\$${product.price.toStringAsFixed(0)}',
               style: TextStyle(color: fgMuted, fontSize: 13, letterSpacing: 1),
             ),
-            GestureDetector(
-              onTap: () {
-                ref.read(cartProvider.notifier).add(product);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: isDark
-                        ? AppColors.white
-                        : const Color(0xFF1A1A1A),
-                    duration: const Duration(seconds: 2),
-                    content: Text('${product.name} added to bag'),
+            Consumer(
+              builder: (context, ref, child) {
+                final cart = ref.watch(cartProvider);
+                final isInCart = cart.any((item) => item.product.id == product.id);
+                return GestureDetector(
+                  onTap: () {
+                    if (isInCart) {
+                      context.go('/cart');
+                    } else {
+                      ref.read(cartProvider.notifier).add(product);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: isDark
+                              ? AppColors.white
+                              : const Color(0xFF1A1A1A),
+                          duration: const Duration(seconds: 2),
+                          content: Text('${product.name} added to bag'),
+                        ),
+                      );
+                    }
+                  },
+                  child: Text(
+                    isInCart ? 'GO TO BAG' : 'ADD TO BAG',
+                    style: TextStyle(
+                      color: fg,
+                      fontSize: 10,
+                      letterSpacing: 3,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 );
               },
-              child: Text(
-                'ADD TO BAG',
-                style: TextStyle(
-                  color: fg,
-                  fontSize: 10,
-                  letterSpacing: 3,
-                  fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
             ),
           ],
         ),

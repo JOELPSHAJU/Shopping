@@ -13,7 +13,7 @@ class MainLayoutPage extends ConsumerWidget {
   void _onTap(BuildContext context, int index) {
     navigationShell.goBranch(
       index,
-      initialLocation: index == navigationShell.currentIndex,
+      initialLocation: true,
     );
   }
 
@@ -112,8 +112,8 @@ class MainLayoutPage extends ConsumerWidget {
                         'F A T H A S H',
                         style: TextStyle(
                           fontFamily: 'Poppins',
-                          fontSize: 22,
-                          letterSpacing: 8,
+                          fontSize: isDesktop ? 22 : 18,
+                          letterSpacing: isDesktop ? 8 : 4,
                           fontWeight: FontWeight.w300,
                           color: fg,
                         ),

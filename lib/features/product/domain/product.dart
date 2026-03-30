@@ -21,3 +21,21 @@ class Product {
     this.collectionId,
   });
 }
+
+class ProductQuestion {
+  final String id;
+  final String userId;
+  final String userName;
+  final String question;
+  final String? answer;
+  final DateTime date;
+
+  const ProductQuestion({
+    required this.id,
+    required this.userId,
+    required this.userName,
+    required this.question,
+    this.answer,
+    required this.date,
+  });
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/cart_provider.dart';
 
@@ -182,14 +183,16 @@ class CartPage extends ConsumerWidget {
   Widget _buildCartItem(
     BuildContext context,
     WidgetRef ref,
-    item,
+    CartItem item,
     Color fg,
     Color fgMuted,
     Color borderColor,
     Color cardBg,
     bool isDark,
   ) {
-    return Container(
+    return InkWell(
+      onTap: () => context.push('/product/${item.product.id}'),
+      child: Container(
       padding: const EdgeInsets.symmetric(vertical: 24),
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: borderColor, width: 0.5)),
@@ -281,8 +284,9 @@ class CartPage extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _qtyBtn(
     WidgetRef ref,
@@ -296,11 +300,7 @@ class CartPage extends ConsumerWidget {
         if (inc) {
           ref.read(cartProvider.notifier).add(item.product, size: item.size);
         } else {
-          if (item.quantity > 1) {
-            // Need a decrement specific method in provider?
-            // Current provider seems to only have 'add' and 'remove' (which removes whole item?)
-            // Let's assume remove(item) removes one if quantity > 1 OR we should add a decrease.
-          }
+          ref.read(cartProvider.notifier).remove(item.product, size: item.size);
         }
       },
       child: Container(

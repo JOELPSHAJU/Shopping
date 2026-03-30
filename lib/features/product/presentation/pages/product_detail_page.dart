@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../home/presentation/providers/home_providers.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
+import '../../domain/product.dart';
 
 class ProductDetailPage extends ConsumerStatefulWidget {
   final String productId;
@@ -18,6 +19,55 @@ class ProductDetailPage extends ConsumerStatefulWidget {
 class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String selectedSize = 'M';
+
+  final TextEditingController _questionController = TextEditingController();
+  final List<ProductQuestion> _questions = [];
+
+  void _submitQuestion() {
+    if (_questionController.text.trim().isEmpty) return;
+
+    setState(() {
+      _questions.insert(
+        0,
+        ProductQuestion(
+          id: DateTime.now().toString(),
+          userId: 'user123',
+          userName: 'You',
+          question: _questionController.text.trim(),
+          date: DateTime.now(),
+        ),
+      );
+      _questionController.clear();
+    });
+
+    // Auto-reply mock (Optional, but adds to the demo)
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          final index = _questions.indexWhere(
+            (q) => q.userId == 'user123' && q.answer == null,
+          );
+          if (index != -1) {
+            _questions[index] = ProductQuestion(
+              id: _questions[index].id,
+              userId: _questions[index].userId,
+              userName: _questions[index].userName,
+              question: _questions[index].question,
+              answer:
+                  'Thank you for your inquiry! Our team will get back to you with a detailed response shortly.',
+              date: _questions[index].date,
+            );
+          }
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _questionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,10 +88,19 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         .take(5)
         .toList();
 
+    final isDesktop = MediaQuery.of(context).size.width > 800;
+
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: bg,
-      endDrawer: _buildSizeChartDrawer(context, fg, bg, fgMuted, borderColor),
+      endDrawer: _buildSizeChartDrawer(
+        context,
+        fg,
+        bg,
+        fgMuted,
+        borderColor,
+        isDesktop,
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -51,7 +110,9 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1200),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isDesktop ? 40 : 20,
+                  ),
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: GestureDetector(
@@ -87,412 +148,66 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1200),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // LEFT: Image Gallery Grid (2x2)
-                    Expanded(
-                      flex: 6,
-                      child: Column(
-                        children: [
-                          GridView.count(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 12,
-                            crossAxisSpacing: 12,
-                            childAspectRatio: 0.8,
-                            children: List.generate(
-                              4,
-                              (index) => Container(
-                                color: cardBg,
-                                child: Stack(
-                                  children: [
-                                    Center(
-                                      child: Icon(
-                                        CupertinoIcons.scissors,
-                                        color: fgMuted,
-                                        size: 40,
-                                      ),
-                                    ),
-                                    if (index ==
-                                        0) // Main view could have the actual image if we had multiple
-                                      const Positioned.fill(child: Center()),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 80),
-
-                          // Product Details Accordion Style (Below Images)
-                          _detailsAccordion(
-                            'PRODUCT HIGHLIGHTS',
-                            [
-                              '100% Cotton Blend',
-                              'Mandarin Collar',
-                              'Modern Slim Fit',
-                              'Artisanal Stitching',
-                            ],
-                            fg,
-                            fgMuted,
-                            borderColor,
-                          ),
-                          _detailsAccordion(
-                            'COMPOSITION & CARE',
-                            [
-                              'Hand wash cold',
-                              'Do not bleach',
-                              'Iron at low temperature',
-                            ],
-                            fg,
-                            fgMuted,
-                            borderColor,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(width: 60),
-
-                    // RIGHT: Purchase Info
-                    Expanded(
-                      flex: 4,
-                      child: Column(
+                padding: EdgeInsets.symmetric(horizontal: isDesktop ? 40 : 20),
+                child: isDesktop
+                    ? Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Brand & Type breadcrumb
-                          Text(
-                            'PRODUCTS / ${product.category.toUpperCase()} / ${product.brand.toUpperCase()}',
-                            style: TextStyle(
-                              color: fgMuted,
-                              fontSize: 10,
-                              letterSpacing: 3,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Title
-                          Text(
-                            product.name,
-                            style: TextStyle(
-                              color: fg,
-                              fontSize: 32,
-                              fontWeight: FontWeight.w300,
-                              letterSpacing: 2,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Rating
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF26A541),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: const Row(
-                                  children: [
-                                    Text(
-                                      '4.1',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    SizedBox(width: 4),
-                                    Icon(
-                                      Icons.star,
-                                      color: Colors.white,
-                                      size: 12,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                '37,842 ratings',
-                                style: TextStyle(color: fgMuted, fontSize: 12),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 32),
-
-                          // Price
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                '\$${product.price.toStringAsFixed(0)}',
-                                style: TextStyle(
-                                  color: fg,
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Text(
-                                '\$${(product.price * 4.8).toStringAsFixed(0)}',
-                                style: TextStyle(
-                                  color: fgMuted,
-                                  fontSize: 18,
-                                  decoration: TextDecoration.lineThrough,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              const Text(
-                                '79% off',
-                                style: TextStyle(
-                                  color: Color(0xFF26A541),
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 32),
-
-                          // Delivery info
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: borderColor),
-                            ),
+                          // LEFT: Image Gallery Grid (2x2)
+                          Expanded(
+                            flex: 6,
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      CupertinoIcons.location,
-                                      size: 16,
-                                      color: fg,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      'CHECK DELIVERY AVAILABILITY',
-                                      style: TextStyle(
-                                        color: fg,
-                                        fontSize: 11,
-                                        letterSpacing: 2,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Delivery in 2-4 business days | Free Shipping on orders over \$500',
-                                  style: TextStyle(
-                                    color: fgMuted,
-                                    fontSize: 12,
-                                  ),
+                                _buildImageGallery(cardBg, fgMuted),
+                                const SizedBox(height: 56),
+                                _buildDetailsAccordionSection(
+                                  fg,
+                                  fgMuted,
+                                  borderColor,
                                 ),
                               ],
                             ),
                           ),
-
-                          const SizedBox(height: 48),
-                          // Size selector
-                          Text(
-                            'SELECT SIZE',
-                            style: TextStyle(
-                              color: fg,
-                              fontSize: 10,
-                              letterSpacing: 4,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: ['S', 'M', 'L', 'XL', 'XXL']
-                                .map(
-                                  (s) => _sizeChip(
-                                    s,
-                                    s == selectedSize,
-                                    fg,
-                                    bg,
-                                    () {
-                                      setState(() {
-                                        selectedSize = s;
-                                      });
-                                    },
-                                  ),
-                                )
-                                .toList(),
-                          ),
-
-                          const SizedBox(height: 16),
-                          GestureDetector(
-                            onTap: () =>
-                                _scaffoldKey.currentState?.openEndDrawer(),
-                            child: Text(
-                              'VIEW SIZE CHART',
-                              style: TextStyle(
-                                color: fg,
-                                fontSize: 10,
-                                letterSpacing: 2,
-                                fontWeight: FontWeight.bold,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 48),
-
-                          // Sticky-like Actions
-                          Row(
-                            children: [
-                              Expanded(
-                                child: SizedBox(
-                                  height: 64,
-                                  child: OutlinedButton(
-                                    onPressed: () {
-                                      ref
-                                          .read(cartProvider.notifier)
-                                          .add(product, size: selectedSize);
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          backgroundColor: fg,
-                                          duration: const Duration(seconds: 1),
-                                          content: Text(
-                                            'ADDED TO BAG ($selectedSize)',
-                                            style: TextStyle(
-                                              color: bg,
-                                              fontSize: 10,
-                                              letterSpacing: 4,
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    style: OutlinedButton.styleFrom(
-                                      side: BorderSide(color: fg, width: 1),
-                                      shape: const RoundedRectangleBorder(),
-                                    ),
-                                    child: Text(
-                                      textAlign: TextAlign.center,
-                                      'ADD TO BAG',
-                                      style: TextStyle(
-                                        color: fg,
-                                        fontSize: 12,
-                                        letterSpacing: 4,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: SizedBox(
-                                  height: 64,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      context.push('/checkout');
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: fg,
-                                      elevation: 0,
-                                      shape: const RoundedRectangleBorder(),
-                                    ),
-                                    child: Text(
-                                      'BUY NOW',
-                                      style: TextStyle(
-                                        color: bg,
-                                        fontSize: 12,
-                                        letterSpacing: 4,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          Container(
-                            padding: const EdgeInsets.symmetric(vertical: 32),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                top: BorderSide(color: borderColor, width: 0.5),
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'QUESTIONS AND ANSWERS',
-                                      style: TextStyle(
-                                        color: fg,
-                                        fontSize: 12,
-                                        letterSpacing: 4,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Icon(
-                                      CupertinoIcons.chevron_up,
-                                      size: 16,
-                                      color: fg,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 24),
-                                Text(
-                                  'Be the first to ask about this product',
-                                  style: TextStyle(
-                                    color: fgMuted,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 16,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: borderColor,
-                                      width: 0.5,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    'Ask a question',
-                                    style: TextStyle(
-                                      color: fgMuted,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                          const SizedBox(width: 60),
+                          // RIGHT: Purchase Info
+                          Expanded(
+                            flex: 4,
+                            child: _buildPurchaseInfo(
+                              context,
+                              ref,
+                              product,
+                              fg,
+                              fgMuted,
+                              bg,
+                              borderColor,
+                              isDesktop,
                             ),
                           ),
                         ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildImageGallery(cardBg, fgMuted),
+                          const SizedBox(height: 48),
+                          _buildPurchaseInfo(
+                            context,
+                            ref,
+                            product,
+                            fg,
+                            fgMuted,
+                            bg,
+                            borderColor,
+                            isDesktop,
+                          ),
+                          const SizedBox(height: 48),
+                          _buildDetailsAccordionSection(
+                            fg,
+                            fgMuted,
+                            borderColor,
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
               ),
             ),
 
@@ -507,11 +222,486 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                 fgMuted,
                 cardBg,
                 isDark,
+                isDesktop,
               ),
 
             const SizedBox(height: 120),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildImageGallery(Color cardBg, Color fgMuted) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 0.8,
+      children: List.generate(
+        4,
+        (index) => Container(
+          color: cardBg,
+          child: Stack(
+            children: [
+              Center(
+                child: Icon(CupertinoIcons.scissors, color: fgMuted, size: 40),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailsAccordionSection(
+    Color fg,
+    Color fgMuted,
+    Color borderColor,
+  ) {
+    return Column(
+      children: [
+        _detailsAccordion(
+          'PRODUCT HIGHLIGHTS',
+          [
+            '100% Cotton Blend',
+            'Mandarin Collar',
+            'Modern Slim Fit',
+            'Artisanal Stitching',
+          ],
+          fg,
+          fgMuted,
+          borderColor,
+        ),
+        _detailsAccordion(
+          'COMPOSITION & CARE',
+          ['Hand wash cold', 'Do not bleach', 'Iron at low temperature'],
+          fg,
+          fgMuted,
+          borderColor,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPurchaseInfo(
+    BuildContext context,
+    WidgetRef ref,
+    dynamic product,
+    Color fg,
+    Color fgMuted,
+    Color bg,
+    Color borderColor,
+    bool isDesktop,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Brand & Type breadcrumb
+        Text(
+          'PRODUCTS / ${product.category.toUpperCase()} / ${product.brand.toUpperCase()}',
+          style: TextStyle(color: fgMuted, fontSize: 10, letterSpacing: 3),
+        ),
+        const SizedBox(height: 16),
+
+        // Title
+        Text(
+          product.name,
+          style: TextStyle(
+            color: fg,
+            fontSize: isDesktop ? 32 : 28,
+            fontWeight: FontWeight.w300,
+            letterSpacing: 2,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Rating
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF26A541),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Row(
+                children: [
+                  Text(
+                    '4.1',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(width: 4),
+                  Icon(Icons.star, color: Colors.white, size: 12),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              '37,842 ratings',
+              style: TextStyle(color: fgMuted, fontSize: 12),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 32),
+
+        // Price
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.end,
+          spacing: 16,
+          runSpacing: 8,
+          children: [
+            Text(
+              '\$${product.price.toStringAsFixed(0)}',
+              style: TextStyle(
+                color: fg,
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              '\$${(product.price * 4.8).toStringAsFixed(0)}',
+              style: TextStyle(
+                color: fgMuted,
+                fontSize: 18,
+                decoration: TextDecoration.lineThrough,
+              ),
+            ),
+            const Text(
+              '79% off',
+              style: TextStyle(
+                color: Color(0xFF26A541),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 32),
+
+        // Delivery info
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(border: Border.all(color: borderColor)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(CupertinoIcons.location, size: 16, color: fg),
+                  const SizedBox(width: 12),
+                  Text(
+                    'CHECK DELIVERY AVAILABILITY',
+                    style: TextStyle(
+                      color: fg,
+                      fontSize: 11,
+                      letterSpacing: 2,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Delivery in 2-4 business days | Free Shipping on orders over \$500',
+                style: TextStyle(color: fgMuted, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 48),
+        // Size selector
+        Text(
+          'SELECT SIZE',
+          style: TextStyle(
+            color: fg,
+            fontSize: 10,
+            letterSpacing: 4,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 24),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: ['S', 'M', 'L', 'XL', 'XXL']
+                .map(
+                  (s) => Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: _sizeChip(s, s == selectedSize, fg, bg, () {
+                      setState(() {
+                        selectedSize = s;
+                      });
+                    }),
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+
+        const SizedBox(height: 20),
+        GestureDetector(
+          onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+          child: Text(
+            'VIEW SIZE CHART',
+            style: TextStyle(
+              color: fg,
+              fontSize: 10,
+              letterSpacing: 2,
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ),
+        const SizedBox(height: 48),
+
+        // Sticky-like Actions
+        Row(
+          children: [
+            Expanded(
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final cart = ref.watch(cartProvider);
+                  final bool isInCart = cart.any(
+                    (item) =>
+                        item.product.id == product.id &&
+                        item.size == selectedSize,
+                  );
+
+                  return SizedBox(
+                    height: 64,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        if (isInCart) {
+                          context.go('/cart');
+                        } else {
+                          ref
+                              .read(cartProvider.notifier)
+                              .add(product, size: selectedSize);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: fg,
+                              duration: const Duration(seconds: 1),
+                              content: Text(
+                                'ADDED TO BAG ($selectedSize)',
+                                style: TextStyle(
+                                  color: bg,
+                                  fontSize: 10,
+                                  letterSpacing: 4,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: fg, width: 1),
+                        shape: const RoundedRectangleBorder(),
+                      ),
+                      child: Text(
+                        textAlign: TextAlign.center,
+                        isInCart ? 'GO TO BAG' : 'ADD TO BAG',
+                        style: TextStyle(
+                          color: fg,
+                          fontSize: 12,
+                          letterSpacing: 4,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: SizedBox(
+                height: 64,
+                child: ElevatedButton(
+                  onPressed: () {
+                    context.push('/checkout');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: fg,
+                    elevation: 0,
+                    shape: const RoundedRectangleBorder(),
+                  ),
+                  child: Text(
+                    'BUY NOW',
+                    style: TextStyle(
+                      color: bg,
+                      fontSize: 12,
+                      letterSpacing: 4,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 20),
+
+        _buildQASection(fg, fgMuted, borderColor),
+      ],
+    );
+  }
+
+  Widget _buildQASection(Color fg, Color fgMuted, Color borderColor) {
+    final bool hasQuestions = _questions.isNotEmpty;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: borderColor, width: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'QUESTIONS AND ANSWERS',
+                style: TextStyle(
+                  color: fg,
+                  fontSize: 12,
+                  letterSpacing: 4,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Icon(CupertinoIcons.chat_bubble_2, size: 16, color: fg),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          if (!hasQuestions)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Text(
+                'Be the first to ask about this product',
+                style: TextStyle(
+                  color: fgMuted,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _questions.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 24),
+              itemBuilder: (context, index) {
+                final q = _questions[index];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Q: ',
+                          style: TextStyle(
+                            color: fg,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            q.question,
+                            style: TextStyle(color: fg, fontSize: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (q.answer != null) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(width: 20),
+                          Text(
+                            'A: ',
+                            style: TextStyle(
+                              color: AppColors.accent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              q.answer!,
+                              style: TextStyle(
+                                color: fgMuted,
+                                fontSize: 13,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+
+          const SizedBox(height: 32),
+
+          TextField(
+            controller: _questionController,
+            style: TextStyle(color: fg, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: 'Enter your question...',
+              hintStyle: TextStyle(color: fgMuted, fontSize: 14),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: borderColor, width: 0.5),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: fg, width: 1),
+              ),
+              contentPadding: const EdgeInsets.all(20),
+            ),
+            maxLines: 3,
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: _submitQuestion,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: fg,
+                shape: const RoundedRectangleBorder(),
+                elevation: 0,
+              ),
+              child: Text(
+                hasQuestions ? 'ASK ANOTHER QUESTION' : 'ASK A QUESTION',
+                style: TextStyle(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black
+                      : Colors.white,
+                  fontSize: 11,
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -523,12 +713,13 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     Color fgMuted,
     Color cardBg,
     bool isDark,
+    bool isDesktop,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 40),
+          padding: EdgeInsets.symmetric(horizontal: isDesktop ? 40 : 20),
           child: Text(
             'SIMILAR PIECES',
             style: TextStyle(
@@ -544,7 +735,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           height: 450,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 40),
+            padding: EdgeInsets.symmetric(horizontal: isDesktop ? 40 : 20),
             itemCount: similar.length,
             itemBuilder: (context, index) {
               final p = similar[index];
@@ -676,9 +867,10 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     Color bg,
     Color fgMuted,
     Color borderColor,
+    bool isDesktop,
   ) {
     return Drawer(
-      width: 500,
+      width: isDesktop ? 500 : MediaQuery.of(context).size.width,
       backgroundColor: bg,
       child: SafeArea(
         child: Column(
