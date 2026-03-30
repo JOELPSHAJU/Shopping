@@ -54,15 +54,19 @@ class CartPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  // Title
-                  Text(
-                    'Your Cart',
-                    style: TextStyle(
-                      color: fg,
-                      fontSize: 56,
-                      fontWeight: FontWeight.w300,
-                      letterSpacing: 8,
-                    ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isSmall = constraints.maxWidth < 600;
+                      return Text(
+                        'Your Cart',
+                        style: TextStyle(
+                          color: fg,
+                          fontSize: isSmall ? 32 : 56,
+                          fontWeight: FontWeight.w300,
+                          letterSpacing: isSmall ? 4 : 8,
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 8),
                   Text(

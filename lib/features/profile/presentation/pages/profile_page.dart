@@ -115,68 +115,75 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   const SizedBox(height: 56),
 
                   // Header Section
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isSmall = constraints.maxWidth < 600;
+                      return Flex(
+                        direction: isSmall ? Axis.vertical : Axis.horizontal,
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: isSmall ? MainAxisAlignment.start : MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                width: 16,
-                                height: 0.5,
-                                color: AppColors.accent,
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 16,
+                                    height: 0.5,
+                                    color: AppColors.accent,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'ACCOUNT PROFILE',
+                                    style: TextStyle(
+                                      color: AppColors.accent,
+                                      fontSize: 11,
+                                      letterSpacing: isSmall ? 3 : 6,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(height: 12),
                               Text(
-                                'ACCOUNT PROFILE',
+                                'Your Identity',
                                 style: TextStyle(
-                                  color: AppColors.accent,
-                                  fontSize: 11,
-                                  letterSpacing: 6,
+                                  color: fg,
+                                  fontSize: isSmall ? 32 : 56,
+                                  fontWeight: FontWeight.w300,
+                                  letterSpacing: isSmall ? 4 : 8,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Your Identity',
-                            style: TextStyle(
-                              color: fg,
-                              fontSize: 56,
-                              fontWeight: FontWeight.w300,
-                              letterSpacing: 8,
+                          if (isSmall) const SizedBox(height: 32),
+                          // Profile initial / circle
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: fg, width: 0.5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                user.name
+                                    .split(' ')
+                                    .map((n) => n[0])
+                                    .join()
+                                    .toUpperCase(),
+                                style: TextStyle(
+                                  color: fg,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w300,
+                                  letterSpacing: 4,
+                                ),
+                              ),
                             ),
                           ),
                         ],
-                      ),
-                      // Profile initial / circle
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: fg, width: 0.5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            user.name
-                                .split(' ')
-                                .map((n) => n[0])
-                                .join()
-                                .toUpperCase(),
-                            style: TextStyle(
-                              color: fg,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w300,
-                              letterSpacing: 4,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
 
                   Container(
