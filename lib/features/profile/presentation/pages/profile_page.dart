@@ -727,7 +727,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               ),
               CupertinoSwitch(
                 value: _tempNotificationsEnabled,
-                activeTrackColor: AppColors.accent,
+                activeColor: AppColors.accent,
                 onChanged: (val) => setState(() => _tempNotificationsEnabled = val),
               ),
             ],
