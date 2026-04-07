@@ -7,11 +7,24 @@ import '../providers/home_providers.dart';
 import '../../../product/domain/product.dart';
 import 'package:go_router/go_router.dart';
 
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  final _emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 800;
 
@@ -22,17 +35,25 @@ class HomePage extends ConsumerWidget {
         .where((p) => favorites.contains(p.id))
         .toList();
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = Theme.of(context).scaffoldBackgroundColor;
+    final fg = isDark ? Colors.white : Colors.black;
+    final fgMuted = isDark ? AppColors.textBody : AppColors.lightTextBody;
+    final borderColor = isDark ? AppColors.cardLight : AppColors.lightBorder;
+
+    final banner = ref.watch(homeBannerProvider);
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: bg,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Hero Banner ──────────────────────────────────────────────
-            _buildHero(context, isDesktop),
+            _buildHero(context, isDesktop, bg, fg, fgMuted, banner),
 
             // ── Marquee Brand Strip ──────────────────────────────────────
-            _buildBrandStrip(context),
+            _buildBrandStrip(context, bg, fg),
 
             // ── SS26 Collection ──────────────────────────────────────────
             _buildConstrainedSection(
@@ -79,9 +100,7 @@ class HomePage extends ConsumerWidget {
                                 decoration: BoxDecoration(
                                   border: Border(
                                     bottom: BorderSide(
-                                      color: isSel
-                                          ? AppColors.white
-                                          : Colors.transparent,
+                                      color: isSel ? fg : Colors.transparent,
                                       width: 1,
                                     ),
                                   ),
@@ -92,9 +111,7 @@ class HomePage extends ConsumerWidget {
                                     fontSize: 13,
                                     letterSpacing: 4,
                                     fontWeight: FontWeight.w300,
-                                    color: isSel
-                                        ? AppColors.white
-                                        : AppColors.textBody,
+                                    color: isSel ? fg : fgMuted,
                                   ),
                                 ),
                               ),
@@ -119,7 +136,6 @@ class HomePage extends ConsumerWidget {
                                 padding: const EdgeInsets.only(right: 40),
                                 child: _buildProductCard(
                                   context,
-                                  ref,
                                   p,
                                   height: 560,
                                   width: 380,
@@ -133,7 +149,7 @@ class HomePage extends ConsumerWidget {
             ),
 
             // ── Editorial Full-width Image ────────────────────────────────
-            _buildEditorialBanner(context, isDesktop),
+            _buildEditorialBanner(context, isDesktop, bg, fg),
 
             // ── Curated Picks ───────────────────────────────────────────
             _buildConstrainedSection(
@@ -153,20 +169,31 @@ class HomePage extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 48),
-                  _buildDefaultFavourites(context, ref, isDesktop),
+                  _buildDefaultFavourites(context, isDesktop),
                 ],
               ),
             ),
 
-            _buildJoin(context, isDesktop),
-            _buildFooter(context, isDesktop),
+            if (ref.watch(newsletterStatusProvider) != NewsletterStatus.success)
+              _buildJoin(context, isDesktop, bg, fg, fgMuted, borderColor),
+
+            _buildFooter(context, isDesktop, bg, fg, fgMuted),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHero(BuildContext context, bool isDesktop) {
+  Widget _buildHero(
+    BuildContext context,
+    bool isDesktop,
+    Color bg,
+    Color fg,
+    Color fgMuted,
+    dynamic banner,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SizedBox(
       width: double.infinity,
       height: isDesktop ? 720 : 600,
@@ -174,20 +201,19 @@ class HomePage extends ConsumerWidget {
         fit: StackFit.expand,
         children: [
           Image.asset(
-            'assets/images/dress_hero.webp',
+            banner.imageAsset,
             fit: BoxFit.cover,
-            color: Colors.black.withValues(alpha: 0.35),
-            colorBlendMode: BlendMode.darken,
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.35)
+                : Colors.white.withValues(alpha: 0.15),
+            colorBlendMode: isDark ? BlendMode.darken : BlendMode.lighten,
           ),
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
-                colors: [
-                  AppColors.background,
-                  AppColors.background.withValues(alpha: 0.0),
-                ],
+                colors: [bg, bg.withValues(alpha: 0.0)],
                 stops: const [0.0, 0.7],
               ),
             ),
@@ -219,7 +245,7 @@ class HomePage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'MODEST\nCOLLECTIONS',
+                      banner.title,
                       style: Theme.of(context).textTheme.displayLarge?.copyWith(
                         fontSize: isDesktop ? 88 : 56,
                         height: 1.0,
@@ -227,15 +253,13 @@ class HomePage extends ConsumerWidget {
                         fontWeight: FontWeight.w300,
                       ),
                     ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: 440,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 440),
                       child: Text(
-                        'Ladies modest wear for the modern woman — cotton sets, '
-                        'elegant gowns, and artisanal co-ord sets.',
+                        banner.description,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           height: 1.8,
-                          color: AppColors.textBody,
+                          color: fgMuted,
                         ),
                       ),
                     ),
@@ -243,9 +267,11 @@ class HomePage extends ConsumerWidget {
                     Row(
                       children: [
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () => context.push(
+                            '/collection/${banner.collectionId}',
+                          ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.white,
+                            backgroundColor: fg,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 48,
                               vertical: 20,
@@ -253,10 +279,10 @@ class HomePage extends ConsumerWidget {
                             elevation: 0,
                             shape: const ContinuousRectangleBorder(),
                           ),
-                          child: const Text(
+                          child: Text(
                             'SHOP NOW',
                             style: TextStyle(
-                              color: AppColors.black,
+                              color: bg,
                               fontSize: 13,
                               letterSpacing: 4,
                             ),
@@ -274,7 +300,7 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildBrandStrip(BuildContext context) {
+  Widget _buildBrandStrip(BuildContext context, Color bg, Color fg) {
     const brands = [
       'COTTON SET',
       'PARTY WEAR',
@@ -299,9 +325,9 @@ class HomePage extends ConsumerWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 28),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border.symmetric(
-          horizontal: BorderSide(color: Color(0xFF222222), width: 1),
+          horizontal: BorderSide(color: fg.withValues(alpha: 0.1), width: 1),
         ),
       ),
       child: SingleChildScrollView(
@@ -318,8 +344,8 @@ class HomePage extends ConsumerWidget {
                           onTap: () => context.push('/brand/$b'),
                           child: Text(
                             b,
-                            style: const TextStyle(
-                              color: AppColors.white,
+                            style: TextStyle(
+                              color: fg,
                               fontSize: 15,
                               letterSpacing: 6,
                               fontWeight: FontWeight.w300,
@@ -338,11 +364,15 @@ class HomePage extends ConsumerWidget {
 
   Widget _buildProductCard(
     BuildContext context,
-    WidgetRef ref,
     Product product, {
     required double height,
     required double width,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fg = isDark ? Colors.white : Colors.black;
+    final fgMuted = isDark ? AppColors.textBody : AppColors.lightTextBody;
+    final cardBg = isDark ? AppColors.cardDark : AppColors.lightCard;
+
     return SizedBox(
       width: width,
       child: Column(
@@ -353,7 +383,7 @@ class HomePage extends ConsumerWidget {
             child: Container(
               height: height,
               width: width,
-              color: AppColors.cardDark,
+              color: cardBg,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -367,11 +397,13 @@ class HomePage extends ConsumerWidget {
                         horizontal: 10,
                         vertical: 4,
                       ),
-                      color: AppColors.background.withValues(alpha: 0.7),
+                      color: (isDark ? Colors.black : Colors.white).withValues(
+                        alpha: 0.7,
+                      ),
                       child: Text(
                         product.brand,
-                        style: const TextStyle(
-                          color: AppColors.white,
+                        style: TextStyle(
+                          color: fg,
                           fontSize: 10,
                           letterSpacing: 3,
                           fontWeight: FontWeight.bold,
@@ -386,8 +418,8 @@ class HomePage extends ConsumerWidget {
           const SizedBox(height: 20),
           Text(
             product.brand.toUpperCase(),
-            style: const TextStyle(
-              color: AppColors.textBody,
+            style: TextStyle(
+              color: fgMuted,
               fontSize: 10,
               letterSpacing: 2,
               fontWeight: FontWeight.bold,
@@ -396,8 +428,8 @@ class HomePage extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             product.name,
-            style: const TextStyle(
-              color: AppColors.white,
+            style: TextStyle(
+              color: fg,
               fontSize: 16,
               letterSpacing: 1,
               fontWeight: FontWeight.w300,
@@ -406,8 +438,8 @@ class HomePage extends ConsumerWidget {
           const SizedBox(height: 12),
           Text(
             '\$${product.price.toStringAsFixed(0)}',
-            style: const TextStyle(
-              color: AppColors.white,
+            style: TextStyle(
+              color: fg,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
@@ -419,7 +451,6 @@ class HomePage extends ConsumerWidget {
 
   Widget _buildDefaultFavourites(
     BuildContext context,
-    WidgetRef ref,
     bool isDesktop,
   ) {
     final products = mockProducts.take(3).toList();
@@ -429,103 +460,207 @@ class HomePage extends ConsumerWidget {
         children: products.map((p) {
           return Padding(
             padding: const EdgeInsets.only(right: 32),
-            child: _buildProductCard(context, ref, p, height: 440, width: 300),
+            child: _buildProductCard(context, p, height: 440, width: 300),
           );
         }).toList(),
       ),
     );
   }
 
-  Widget _buildJoin(BuildContext context, bool isDesktop) {
+  Widget _buildJoin(
+    BuildContext context,
+    bool isDesktop,
+    Color bg,
+    Color fg,
+    Color fgMuted,
+    Color borderColor,
+  ) {
+    final status = ref.watch(newsletterStatusProvider);
+
     return _buildConstrainedSection(
+      key: const ValueKey('newsletter_section'),
       paddingVertical: 120,
-      backgroundColor: const Color(0xFF111111),
+      backgroundColor: isDesktop
+          ? (Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF111111)
+                : AppColors.lightCard)
+          : bg,
       child: Column(
         children: [
-          const Text(
+          Text(
             'JOIN THE WORLD OF FATHASH',
             style: TextStyle(
-              color: AppColors.white,
+              color: fg,
               fontSize: 12,
               letterSpacing: 8,
               fontWeight: FontWeight.w300,
             ),
           ),
           const SizedBox(height: 48),
-          SizedBox(
-            width: 600,
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'YOUR EMAIL ADDRESS',
-                hintStyle: const TextStyle(
-                  color: AppColors.textBody,
-                  fontSize: 11,
-                  letterSpacing: 4,
-                ),
-                enabledBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF333333)),
-                ),
-                focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.white),
-                ),
-                suffixIcon: TextButton(
-                  onPressed: () {},
-                  child: const Text(
-                    'JOIN',
-                    style: TextStyle(
-                      color: AppColors.white,
-                      fontSize: 11,
-                      letterSpacing: 2,
-                    ),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: TextField(
+                controller: _emailController,
+                style: TextStyle(color: fg),
+                enabled: status != NewsletterStatus.loading,
+                decoration: InputDecoration(
+                  hintText: 'YOUR EMAIL ADDRESS',
+                  hintStyle: TextStyle(
+                    color: fgMuted,
+                    fontSize: 11,
+                    letterSpacing: 4,
                   ),
+                  errorText: status == NewsletterStatus.error ? 'PLEASE ENTER A VALID EMAIL' : null,
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: fg),
+                  ),
+                  suffixIcon: status == NewsletterStatus.loading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: CircularProgressIndicator(strokeWidth: 1),
+                          ),
+                        )
+                      : TextButton(
+                          onPressed: () async {
+                            final email = _emailController.text;
+                            // Unfocus BEFORE starting the action to avoid DWDS errors
+                            FocusManager.instance.primaryFocus?.unfocus();
+                            
+                            await ref.read(newsletterProvider).join(email);
+
+                            if (mounted && ref.read(newsletterStatusProvider) == NewsletterStatus.success) {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  backgroundColor: bg,
+                                  shape: const ContinuousRectangleBorder(),
+                                  title: Text(
+                                    'WELCOME TO FATHASH',
+                                    style: TextStyle(
+                                      color: fg,
+                                      fontSize: 14,
+                                      letterSpacing: 4,
+                                      fontWeight: FontWeight.w300,
+                                    ),
+                                  ),
+                                  content: Text(
+                                    'A confirmation email has been sent to $email.\n\nEnjoy exclusive access to our newest collections and archival showpieces.',
+                                    style: TextStyle(
+                                      color: fgMuted,
+                                      fontSize: 13,
+                                      height: 1.6,
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text(
+                                        'START SHOPPING',
+                                        style: TextStyle(
+                                          color: fg,
+                                          fontSize: 11,
+                                          letterSpacing: 2,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                          },
+                          child: Text(
+                            'JOIN',
+                            style: TextStyle(color: fg, fontSize: 11, letterSpacing: 2),
+                          ),
+                        ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildFooter(BuildContext context, bool isDesktop) {
+  Widget _buildFooter(
+    BuildContext context,
+    bool isDesktop,
+    Color bg,
+    Color fg,
+    Color fgMuted,
+  ) {
     return _buildConstrainedSection(
       paddingVertical: 120,
-      backgroundColor: Colors.black,
+      backgroundColor: bg,
       child: isDesktop
           ? Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(flex: 2, child: _buildFooterBrand(context)),
-                _buildFooterLinks('BOUTIQUE', [
-                  'All Dresses',
-                  'Latest Picks',
-                  'Archives',
-                ]),
+                Expanded(
+                  flex: 2,
+                  child: _buildFooterBrand(context, bg, fg, fgMuted),
+                ),
+                _buildFooterLinks(
+                  context,
+                  'BOUTIQUE',
+                  ['All Dresses', 'Latest Picks', 'Archives'],
+                  fg,
+                  fgMuted,
+                ),
                 const SizedBox(width: 80),
-                _buildFooterLinks('SUPPORT', [
-                  'Shipping & T&C',
-                  'Help Center',
-                  'Payment',
-                ]),
+                _buildFooterLinks(
+                  context,
+                  'SUPPORT',
+                  ['Shipping & T&C', 'Help Center', 'Payment'],
+                  fg,
+                  fgMuted,
+                ),
                 const SizedBox(width: 80),
-                _buildFooterLinks('CONTACT', [
-                  'Instagram',
-                  'Business Inquiry',
-                  'WhatsApp',
-                ]),
+                _buildFooterLinks(
+                  context,
+                  'CONTACT',
+                  ['Instagram', 'Business Inquiry', 'WhatsApp'],
+                  fg,
+                  fgMuted,
+                ),
               ],
             )
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildFooterBrand(context),
+                _buildFooterBrand(context, bg, fg, fgMuted),
                 const SizedBox(height: 80),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  spacing: 40,
+                  runSpacing: 48,
+                  crossAxisAlignment: WrapCrossAlignment.start,
                   children: [
-                    _buildFooterLinks('BOUTIQUE', ['Dresses', 'Latest']),
-                    _buildFooterLinks('SUPPORT', ['T&C', 'Policy']),
-                    _buildFooterLinks('SOCIAL', ['IG', 'WA']),
+                    _buildFooterLinks(
+                      context,
+                      'BOUTIQUE',
+                      ['Dresses', 'Latest'],
+                      fg,
+                      fgMuted,
+                    ),
+                    _buildFooterLinks(
+                      context,
+                      'SUPPORT',
+                      ['T&C', 'Policy'],
+                      fg,
+                      fgMuted,
+                    ),
+                    _buildFooterLinks(
+                      context,
+                      'SOCIAL',
+                      ['IG', 'WA'],
+                      fg,
+                      fgMuted,
+                    ),
                   ],
                 ),
               ],
@@ -533,7 +668,12 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildFooterBrand(BuildContext context) {
+  Widget _buildFooterBrand(
+    BuildContext context,
+    Color bg,
+    Color fg,
+    Color fgMuted,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -543,13 +683,13 @@ class HomePage extends ConsumerWidget {
             Text(
               'F A T H A S H',
               style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                color: AppColors.white,
+                color: fg,
                 fontSize: 36,
                 letterSpacing: 12,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'BY HIBAASHIR',
               style: TextStyle(
                 color: AppColors.secondary,
@@ -566,7 +706,7 @@ class HomePage extends ConsumerWidget {
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             letterSpacing: 4,
             fontWeight: FontWeight.bold,
-            color: AppColors.white,
+            color: fg,
           ),
         ),
         const SizedBox(height: 16),
@@ -608,14 +748,20 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildFooterLinks(String title, List<String> links) {
+  Widget _buildFooterLinks(
+    BuildContext context,
+    String title,
+    List<String> links,
+    Color fg,
+    Color fgMuted,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(
-            color: AppColors.white,
+          style: TextStyle(
+            color: fg,
             fontSize: 11,
             letterSpacing: 4,
             fontWeight: FontWeight.bold,
@@ -627,11 +773,7 @@ class HomePage extends ConsumerWidget {
             padding: const EdgeInsets.only(bottom: 16),
             child: Text(
               l,
-              style: const TextStyle(
-                color: AppColors.textBody,
-                fontSize: 11,
-                letterSpacing: 1,
-              ),
+              style: TextStyle(color: fgMuted, fontSize: 11, letterSpacing: 1),
             ),
           ),
         ),
@@ -640,13 +782,15 @@ class HomePage extends ConsumerWidget {
   }
 
   Widget _buildConstrainedSection({
+    Key? key,
     required Widget child,
     required double paddingVertical,
     Color? backgroundColor,
   }) {
     return Container(
+      key: key,
       width: double.infinity,
-      color: backgroundColor ?? AppColors.background,
+      color: backgroundColor ?? Colors.transparent,
       padding: EdgeInsets.symmetric(vertical: paddingVertical),
       child: Center(
         child: ConstrainedBox(
@@ -702,161 +846,153 @@ class HomePage extends ConsumerWidget {
       ],
     );
   }
-}
 
-Widget _buildEditorialBanner(BuildContext context, bool isDesktop) {
-  return Container(
-    width: double.infinity,
-    color: AppColors.cardDark,
-    child: isDesktop
-        ? IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Left image
-                Expanded(
-                  flex: 5,
-                  child: SizedBox(
-                    height: 640,
-                    child: Image.asset(
-                      'assets/images/dress_cobalt_02.webp',
-                      fit: BoxFit.cover,
+  Widget _buildEditorialBanner(
+    BuildContext context,
+    bool isDesktop,
+    Color bg,
+    Color fg,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.cardDark : AppColors.lightCard;
+    final fgMuted = isDark ? AppColors.textBody : AppColors.lightTextBody;
+
+    return Container(
+      width: double.infinity,
+      color: cardBg,
+      child: isDesktop
+          ? IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Left image
+                  Expanded(
+                    flex: 5,
+                    child: SizedBox(
+                      height: 640,
+                      child: Image.asset(
+                        'assets/images/adv1.jpg',
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                ),
-                // Right content
-                Expanded(
-                  flex: 5,
-                  child: Padding(
-                    padding: const EdgeInsets.all(80.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _sectionLabel(context, 'ARCHIVE EVENT'),
-                        const SizedBox(height: 24),
-                        Text(
-                          'THE\nPREMIERE\nEDITION',
-                          style: Theme.of(context).textTheme.displayLarge
-                              ?.copyWith(
-                                fontSize: 64,
-                                height: 1.0,
+                  // Right content
+                  Expanded(
+                    flex: 5,
+                    child: Padding(
+                      padding: const EdgeInsets.all(80.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _sectionLabel(context, 'ARCHIVE EVENT'),
+                          const SizedBox(height: 24),
+                          Text(
+                            'THE\nPREMIERE\nEDITION',
+                            style: Theme.of(context).textTheme.displayLarge
+                                ?.copyWith(
+                                  fontSize: 64,
+                                  height: 1.0,
+                                  letterSpacing: 4,
+                                  fontWeight: FontWeight.w300,
+                                  color: fg,
+                                ),
+                          ),
+                          const SizedBox(height: 32),
+                          Text(
+                            'For a limited time, acquire select archival showpieces at an unprecedented price adjustment.',
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(height: 1.8, color: fgMuted),
+                          ),
+                          const SizedBox(height: 56),
+                          ElevatedButton(
+                            onPressed: () => context.push('/archive'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: fg,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 48,
+                                vertical: 20,
+                              ),
+                              elevation: 0,
+                              shape: const ContinuousRectangleBorder(),
+                            ),
+                            child: Text(
+                              'ENTER ARCHIVE',
+                              style: TextStyle(
+                                color: bg,
+                                fontSize: 13,
                                 letterSpacing: 4,
-                                fontWeight: FontWeight.w300,
                               ),
-                        ),
-                        const SizedBox(height: 32),
-                        Text(
-                          'For a limited time, acquire select archival showpieces at an unprecedented price adjustment.',
-                          style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(
-                                height: 1.8,
-                                color: AppColors.textBody,
-                              ),
-                        ),
-                        const SizedBox(height: 56),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 48,
-                              vertical: 20,
-                            ),
-                            elevation: 0,
-                            shape: const ContinuousRectangleBorder(),
-                          ),
-                          child: const Text(
-                            'ENTER ARCHIVE',
-                            style: TextStyle(
-                              color: AppColors.black,
-                              fontSize: 13,
-                              letterSpacing: 4,
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: 500,
+                  width: double.infinity,
+                  child: Image.asset(
+                    'assets/images/adv1.jpg',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _sectionLabel(context, 'ARCHIVE EVENT'),
+                      const SizedBox(height: 24),
+                      Text(
+                        'THE PREMIERE EDITION',
+                        style: Theme.of(context).textTheme.displayLarge
+                            ?.copyWith(
+                              fontSize: 40,
+                              letterSpacing: 2,
+                              color: fg,
+                            ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Acquire select archival showpieces at an unprecedented price adjustment.',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          height: 1.8,
+                          color: fgMuted,
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      ElevatedButton(
+                        onPressed: () => context.push('/archive'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: fg,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 40,
+                            vertical: 18,
+                          ),
+                          elevation: 0,
+                          shape: const ContinuousRectangleBorder(),
+                        ),
+                        child: Text(
+                          'ENTER ARCHIVE',
+                          style: TextStyle(
+                            color: bg,
+                            fontSize: 13,
+                            letterSpacing: 4,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          )
-        : Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 500,
-                width: double.infinity,
-                child: Image.asset(
-                  'assets/images/dress_cobalt_02.webp',
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _sectionLabel(context, 'ARCHIVE EVENT'),
-                    const SizedBox(height: 24),
-                    Text(
-                      'THE PREMIERE EDITION',
-                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                        fontSize: 40,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Acquire select archival showpieces at an unprecedented price adjustment.',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyLarge?.copyWith(height: 1.8),
-                    ),
-                    const SizedBox(height: 40),
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 40,
-                          vertical: 18,
-                        ),
-                        elevation: 0,
-                        shape: const ContinuousRectangleBorder(),
-                      ),
-                      child: const Text(
-                        'ENTER ARCHIVE',
-                        style: TextStyle(
-                          color: AppColors.black,
-                          fontSize: 13,
-                          letterSpacing: 4,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-  );
-}
-
-Widget _sectionLabel(BuildContext context, String text) {
-  return Row(
-    children: [
-      Container(width: 20, height: 0.5, color: AppColors.accent),
-      const SizedBox(width: 12),
-      Text(
-        text,
-        style: TextStyle(
-          color: AppColors.accent,
-          fontSize: 11,
-          letterSpacing: 6,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    ],
-  );
+    );
+  }
 }

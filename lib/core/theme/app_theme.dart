@@ -102,67 +102,60 @@ class AppTheme {
   // ─── LIGHT (clean ivory high-fashion) ───────────────────────────────────
   static ThemeData get lightTheme {
     final base = ThemeData.light();
-    const bg = Color(0xFFF8F5F0); // Warm ivory
-    const card = Color(0xFFEFEBE5);
-    const cardEl = Color(0xFFE5E0D8);
-    const textMain = Color(0xFF1A1A1A);
-    const textMuted = Color(0xFF888480);
-    const accentLight = Color(0xFFB8956A); // Warm tan/gold
-
     return base.copyWith(
-      scaffoldBackgroundColor: bg,
-      primaryColor: textMain,
+      scaffoldBackgroundColor: AppColors.lightBackground,
+      primaryColor: AppColors.lightTextTitle,
       colorScheme: base.colorScheme.copyWith(
-        primary: textMain,
-        secondary: textMuted,
-        surface: card,
-        onSurface: textMain,
+        primary: AppColors.lightTextTitle,
+        secondary: AppColors.lightTextBody,
+        surface: AppColors.lightCard,
+        onSurface: AppColors.lightTextTitle,
         brightness: Brightness.light,
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: bg,
+        backgroundColor: AppColors.lightBackground,
         elevation: 0,
-        iconTheme: IconThemeData(color: textMain),
-        foregroundColor: textMain,
+        iconTheme: IconThemeData(color: AppColors.lightTextTitle),
+        foregroundColor: AppColors.lightTextTitle,
       ),
       textTheme: GoogleFonts.poppinsTextTheme(
         base.textTheme.copyWith(
           displayLarge: const TextStyle(
             fontSize: 56,
             fontWeight: FontWeight.w300,
-            color: textMain,
+            color: AppColors.lightTextTitle,
             letterSpacing: 8,
           ),
           headlineMedium: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w400,
-            color: textMain,
+            color: AppColors.lightTextTitle,
             letterSpacing: 6,
           ),
           titleLarge: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,
-            color: textMain,
+            color: AppColors.lightTextTitle,
             letterSpacing: 2,
           ),
           bodyLarge: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w300,
-            color: textMuted,
+            color: AppColors.lightTextBody,
             letterSpacing: 0.5,
           ),
           bodyMedium: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w300,
-            color: textMuted,
+            color: AppColors.lightTextBody,
             letterSpacing: 1,
           ),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: textMain,
-          foregroundColor: bg,
+          backgroundColor: AppColors.lightTextTitle,
+          foregroundColor: AppColors.lightBackground,
           elevation: 0,
           textStyle: const TextStyle(
             fontWeight: FontWeight.bold,
@@ -174,8 +167,8 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: textMain,
-          side: const BorderSide(color: textMain, width: 0.5),
+          foregroundColor: AppColors.lightTextTitle,
+          side: const BorderSide(color: AppColors.lightTextTitle, width: 0.5),
           textStyle: const TextStyle(
             fontWeight: FontWeight.bold,
             letterSpacing: 4,
@@ -184,21 +177,21 @@ class AppTheme {
           shape: const ContinuousRectangleBorder(),
         ),
       ),
-      inputDecorationTheme: InputDecorationTheme(
+      inputDecorationTheme: const InputDecorationTheme(
         filled: true,
-        fillColor: card,
-        hintStyle: const TextStyle(color: textMuted),
-        border: const OutlineInputBorder(
+        fillColor: AppColors.lightCard,
+        hintStyle: TextStyle(color: AppColors.lightTextBody),
+        border: OutlineInputBorder(
           borderRadius: BorderRadius.zero,
-          borderSide: BorderSide(color: cardEl, width: 0.5),
+          borderSide: BorderSide(color: AppColors.lightBorder, width: 0.5),
         ),
-        enabledBorder: const OutlineInputBorder(
+        enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.zero,
-          borderSide: BorderSide(color: cardEl, width: 0.5),
+          borderSide: BorderSide(color: AppColors.lightBorder, width: 0.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.zero,
-          borderSide: BorderSide(color: accentLight, width: 1),
+          borderSide: BorderSide(color: AppColors.accent, width: 1),
         ),
       ),
     );

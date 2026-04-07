@@ -98,6 +98,7 @@ class FavouritesPage extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 24),
                                 Text(
+                                  textAlign: TextAlign.center,
                                   'YOUR WISHLIST IS EMPTY',
                                   style: TextStyle(
                                     color: fgMuted,

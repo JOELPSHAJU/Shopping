@@ -43,3 +43,15 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+lib/core/presentation/pages/main_layout_page.dart
+lib/core/router/app_router.dart
+lib/features/cart/presentation/pages/cart_page.dart
+lib/features/help_center/presentation/pages/help_center_page.dart
+lib/features/home/presentation/pages/home_page.dart
+lib/features/product/domain/product.dart
+lib/features/product/presentation/pages/brand_page.dart
+lib/features/product/presentation/pages/product_detail_page.dart
+lib/features/product/presentation/pages/product_list_page.dart
+lib/features/profile/presentation/pages/order_details_page.dart
+lib/features/profile/presentation/pages/profile_page.dart
+lib/features/profile/presentation/providers/user_provider.dart

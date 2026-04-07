@@ -10,6 +10,9 @@ import '../../features/favourites/presentation/pages/favourites_page.dart';
 import '../../features/checkout/presentation/pages/checkout_page.dart';
 import '../../features/help_center/presentation/pages/help_center_page.dart';
 import '../../features/comparison/presentation/pages/comparison_page.dart';
+import '../../features/home/presentation/pages/archive_page.dart';
+import '../../features/home/presentation/pages/collection_page.dart';
+// import '../../features/profile/presentation/pages/order_details_page.dart';
 import '../presentation/pages/main_layout_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -32,6 +35,17 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/comparison',
                 builder: (context, state) => const ComparisonPage(),
+              ),
+              GoRoute(
+                path: '/archive',
+                builder: (context, state) => const ArchivePage(),
+              ),
+              GoRoute(
+                path: '/collection/:id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return CollectionPage(collectionId: id);
+                },
               ),
             ],
           ),
@@ -86,6 +100,15 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/profile',
                 builder: (context, state) => const ProfilePage(),
+                routes: [
+                  // GoRoute(
+                  //   path: 'order-details/:id',
+                  //   builder: (context, state) {
+                  //     final id = state.pathParameters['id']!;
+                  //     return OrderDetailsPage(orderId: id);
+                  //   },
+                  // ),
+                ],
               ),
             ],
           ),

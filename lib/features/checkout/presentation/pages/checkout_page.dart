@@ -23,11 +23,11 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? AppColors.background : const Color(0xFFF8F5F0);
-    final fg = isDark ? AppColors.white : const Color(0xFF1A1A1A);
-    final fgMuted = isDark ? AppColors.textBody : const Color(0xFF888480);
-    final borderColor = isDark ? AppColors.cardLight : const Color(0xFFDDD8D0);
-    final cardBg = isDark ? AppColors.cardDark : const Color(0xFFE8E3DC);
+    final bg = isDark ? AppColors.background : AppColors.lightBackground;
+    final fg = isDark ? AppColors.white : AppColors.lightTextTitle;
+    final fgMuted = isDark ? AppColors.textBody : AppColors.lightTextBody;
+    final borderColor = isDark ? AppColors.cardLight : AppColors.lightBorder;
+    final cardBg = isDark ? AppColors.cardDark : AppColors.lightCard;
 
     final addressState = ref.watch(addressProvider);
     final selectedAddress = addressState.selectedAddress;
@@ -461,7 +461,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
             ),
             SizedBox(
               height: 56,
-              width: 200,
+
               child: ElevatedButton(
                 onPressed: () {
                   if (isAddressSelected) {

@@ -79,11 +79,11 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? AppColors.background : const Color(0xFFF8F5F0);
-    final cardBg = isDark ? AppColors.cardDark : const Color(0xFFEFEBE5);
-    final fg = isDark ? AppColors.white : const Color(0xFF1A1A1A);
-    final fgMuted = isDark ? AppColors.textBody : const Color(0xFF888480);
-    final borderColor = isDark ? AppColors.cardLight : const Color(0xFFDDD8D0);
+    final bg = isDark ? AppColors.background : AppColors.lightBackground;
+    final cardBg = isDark ? AppColors.cardDark : AppColors.lightCard;
+    final fg = isDark ? AppColors.white : AppColors.lightTextTitle;
+    final fgMuted = isDark ? AppColors.textBody : AppColors.lightTextBody;
+    final borderColor = isDark ? AppColors.cardLight : AppColors.lightBorder;
 
     final groupedProducts = ref.watch(groupedProductsProvider);
     final suggestions = ref.watch(searchSuggestionsProvider);
@@ -531,29 +531,39 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
               '\$${product.price.toStringAsFixed(0)}',
               style: TextStyle(color: fgMuted, fontSize: 13, letterSpacing: 1),
             ),
-            GestureDetector(
-              onTap: () {
-                ref.read(cartProvider.notifier).add(product);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: isDark
-                        ? AppColors.white
-                        : const Color(0xFF1A1A1A),
-                    duration: const Duration(seconds: 2),
-                    content: Text('${product.name} added to bag'),
+            Consumer(
+              builder: (context, ref, child) {
+                final cart = ref.watch(cartProvider);
+                final isInCart = cart.any((item) => item.product.id == product.id);
+                return GestureDetector(
+                  onTap: () {
+                    if (isInCart) {
+                      context.go('/cart');
+                    } else {
+                      ref.read(cartProvider.notifier).add(product);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: isDark
+                              ? AppColors.white
+                              : const Color(0xFF1A1A1A),
+                          duration: const Duration(seconds: 2),
+                          content: Text('${product.name} added to bag'),
+                        ),
+                      );
+                    }
+                  },
+                  child: Text(
+                    isInCart ? 'GO TO BAG' : 'ADD TO BAG',
+                    style: TextStyle(
+                      color: fg,
+                      fontSize: 10,
+                      letterSpacing: 3,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 );
               },
-              child: Text(
-                'ADD TO BAG',
-                style: TextStyle(
-                  color: fg,
-                  fontSize: 10,
-                  letterSpacing: 3,
-                  fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
             ),
           ],
         ),
