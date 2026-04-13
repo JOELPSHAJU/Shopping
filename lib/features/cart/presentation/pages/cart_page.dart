@@ -154,9 +154,7 @@ class CartPage extends ConsumerWidget {
                       width: double.infinity,
                       height: 64,
                       child: OutlinedButton(
-                        onPressed: () {
-                          // TODO: Navigate to checkout
-                        },
+                        onPressed: () => context.push('/checkout'),
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: fg, width: 1),
                           shape: const RoundedRectangleBorder(),
